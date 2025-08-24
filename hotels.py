@@ -1,5 +1,6 @@
-from schemas.schemas import Hotel, Update_Hotel
-from fastapi import Query, APIRouter
+from schemas.schemas import Hotel, UpdateHotel
+from fastapi import Query, APIRouter, Depends
+from dependencies import PaginationDep
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -15,11 +16,10 @@ hotels = [
 
 @router.get("")
 async def get_hotels(
-        id: int | None = Query(None, description="Айдишник"),
-        city: str | None = Query(None, description="Город"),
-        name: str | None = Query(None, description="Название отеля на английском"),
-        page: int | None = Query(None),
-        per_page: int = 2
+    pagination: PaginationDep,
+    id: int | None = Query(None, description="Айдишник"),
+    city: str | None = Query(None, description="Город"),
+    name: str | None = Query(None, description="Название отеля на английском"),   
 ):
     
     hotels_ = []
@@ -33,10 +33,10 @@ async def get_hotels(
             if name and hotel["name"] != name:
                 continue
             hotels_.append(hotel)
-        return hotels_[page:page+per_page]
+        return hotels_[pagination.per_page * (pagination.page-1):][:pagination.per_page]
 
     if not id and not city and not name:
-        return hotels[page:page+per_page]
+        return hotels[pagination.per_page * (pagination.page-1):][:pagination.per_page]
 
 
 @router.delete("/{hotel_id}")
@@ -63,7 +63,7 @@ def find_hotel(hotel_id: int):
     return None
 
 @router.put("/{hotel_id}")
-async def update_hotel(hotel_id: int, hotel: Update_Hotel):
+async def update_hotel(hotel_id: int, hotel: UpdateHotel):
     hotel_ = find_hotel(hotel_id)
 
     if hotel_ == None:
@@ -78,7 +78,7 @@ async def update_hotel(hotel_id: int, hotel: Update_Hotel):
     return {"message": "Информация обновлена"}
 
 @router.patch("/{hotel_id}", summary="Частичное обновление данных об отеле", description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>")
-async def edit_hotel(hotel_id: int, hotel: Update_Hotel):
+async def edit_hotel(hotel_id: int, hotel: UpdateHotel):
     hotel_ = find_hotel(hotel_id)
 
     if hotel_ == None:
