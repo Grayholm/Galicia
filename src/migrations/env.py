@@ -9,6 +9,7 @@ from src.config import settings
 
 from src.db import Base
 from src.models.hotels import HotelsModel
+from src.models.rooms import RoomsModel
 
 
 # this is the Alembic Config object, which provides
