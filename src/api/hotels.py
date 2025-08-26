@@ -1,6 +1,6 @@
 from src.schemas.hotels import Hotel, UpdateHotel
 from fastapi import Query, APIRouter, Body
-from sqlalchemy import insert
+from sqlalchemy import insert, select
 from src.api.dependencies import PaginationDep
 from src.db import async_session_maker
 from src.models.hotels import HotelsModel
@@ -8,39 +8,24 @@ from src.models.hotels import HotelsModel
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
-hotels = [
-    {"id": 1, "city": "Сочи", "name": "sochi"},
-    {"id": 2, "city": "Дубаи", "name": "dubai"},
-    {"id": 3, "city": "Мальдивы", "name": "maldivi"},
-    {"id": 4, "city": "Геленджик", "name": "gelendzhik"},
-    {"id": 5, "city": "Москва", "name": "moscow"},
-    {"id": 6, "city": "Казань", "name": "kazan"},
-    {"id": 7, "city": "Санкт-Петербург", "name": "spb"}
-]
 
 @router.get("")
 async def get_hotels(
     pagination: PaginationDep,
     id: int | None = Query(None, description="Айдишник"),
-    city: str | None = Query(None, description="Город"),
-    name: str | None = Query(None, description="Название отеля на английском"),   
+    title: str | None = Query(None, description="Название отеля"),
+    location: str | None = Query(None, description="Город"),   
 ):
-    
-    hotels_ = []
 
-    if id or city or name:
-        for hotel in hotels:
-            if id and hotel["id"] != id:
-                continue
-            if city and hotel["city"] != city:
-                continue
-            if name and hotel["name"] != name:
-                continue
-            hotels_.append(hotel)
-        return hotels_[pagination.per_page * (pagination.page-1):][:pagination.per_page]
+    async with async_session_maker() as session:
+        query = select(HotelsModel)
+        result = await session.execute(query)
+        hotels = result.scalars().all()
+        # print(type(hotels), hotels)
+        return hotels
 
-    if not id and not city and not name:
-        return hotels[pagination.per_page * (pagination.page-1):][:pagination.per_page]
+    # if pagination.page and pagination.per_page:
+    #     return hotels[pagination.per_page * (pagination.page-1):][:pagination.per_page]
 
 
 @router.delete("/{hotel_id}")
