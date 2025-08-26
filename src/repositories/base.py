@@ -12,12 +12,12 @@ class BaseRepository:
         result = await self.session.execute(query)
         return result.scalars().all()
     
-    async def find_hotel(self, hotel_id):
-        query = select(self.model).where(self.model.id == hotel_id)
+    async def find_one(self, id_by):
+        query = select(self.model).where(self.model.id == id_by)
         result = await self.session.execute(query)
-        hotel = result.scalar_one_or_none()
+        sth = result.scalar_one_or_none()
     
-        if hotel:
-            return self.model.model_validate(hotel, from_attributes=True)
+        if sth:
+            return self.model.model_validate(sth, from_attributes=True)
     
         return None
