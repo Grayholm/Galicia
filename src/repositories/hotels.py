@@ -46,21 +46,16 @@ class HotelsRepository(BaseRepository):
         return None
     
     async def update_hotel(self, hotel_id, hotel: UpdateHotels):
-        if hotel is None:
-            return {"message": "Заполнены не все поля"}
-    
         update_data = hotel.model_dump()
         existing_hotel = HotelsRepository(self.session).find_one(hotel_id)
 
         if existing_hotel is None:
             return existing_hotel
         
-        update_hotel_stmt = update(HotelsModel).where(HotelsModel.id == hotel_id).values(**update_data)
+        update_hotel_stmt = update(HotelsModel).where(HotelsModel.id == hotel_id).values(**update_data).returning(self.model)
         await self.session.execute(update_hotel_stmt)
 
-        updated_hotel = await HotelsRepository(self.session).find_one(hotel_id)
-
-        return updated_hotel
+        return update_hotel_stmt
     
     async def edit_hotel(self, hotel_id, hotel: UpdateHotels | None):
         update_data = hotel.model_dump(exclude_unset=True)
@@ -69,12 +64,10 @@ class HotelsRepository(BaseRepository):
         if existing_hotel is None:
             return existing_hotel
         
-        edit_hotel_stmt = update(HotelsModel).where(HotelsModel.id == hotel_id).values(**update_data)
+        edit_hotel_stmt = update(HotelsModel).where(HotelsModel.id == hotel_id).values(**update_data).returning(self.model)
         await self.session.execute(edit_hotel_stmt)
 
-        update_hotel = await HotelsRepository(self.session).find_one(hotel_id)
-
-        return update_hotel
+        return edit_hotel_stmt
     
     async def delete_hotel(self, hotel_id):
         existing_hotel = HotelsRepository(self.session).find_one(hotel_id)
@@ -82,4 +75,3 @@ class HotelsRepository(BaseRepository):
             return existing_hotel
         delete_hotel_stmt = delete(HotelsModel).where(HotelsModel.id == hotel_id)
         await self.session.execute(delete_hotel_stmt)
-        await self.session.commit()

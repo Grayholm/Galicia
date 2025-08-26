@@ -20,6 +20,12 @@ async def get_hotels(
                                                        location, 
                                                        pagination.per_page, 
                                                        pagination.per_page * (pagination.page-1))
+    
+@router.get("/{hotel_id}")
+async def get_one_hotel_by_id(hotel_id: int):
+    async with async_session_maker() as session:
+        result = await HotelsRepository(session).find_one(hotel_id)
+        return result
 
 
 @router.post("")
@@ -51,6 +57,7 @@ async def create_hotel(hotel_data: Hotels = Body(openapi_examples={
 async def delete_hotel(hotel_id: int):  
     async with async_session_maker() as session:
         deleted_hotel = await HotelsRepository(session).delete_hotel(hotel_id)
+        await session.commit()
 
     if deleted_hotel is None:
         return {"status": f"Hotel {hotel_id} is deleted"}
