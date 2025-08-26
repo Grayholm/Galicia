@@ -1,6 +1,10 @@
 from src.schemas.hotels import Hotel, UpdateHotel
-from fastapi import Query, APIRouter
+from fastapi import Query, APIRouter, Body
+from sqlalchemy import insert
 from src.api.dependencies import PaginationDep
+from src.db import async_session_maker
+from src.models.hotels import HotelsModel
+# from src.db import engine
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -41,18 +45,31 @@ async def get_hotels(
 
 @router.delete("/{hotel_id}")
 async def delete_hotel(hotel_id: int):
-    global hotels
-    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
-    return hotels
+    return {"status": f"hotel {hotel_id} is deleted"}
 
 @router.post("")
-async def create_hotel(hotel: Hotel):
-    global hotels
-    hotels.append({
-        "id": hotels[-1]["id"] + 1,
-        "city": hotel.city,
-        "name": hotel.name
-    })
+async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
+    '1': {
+        "summary": 'Отель в Дубае',
+        "value": {
+            'title': "Звезда",
+            "location": "Дубаи"
+        }
+    },
+    "2": {
+        "summary": 'Отель в Москве',
+        "value": {
+            'title': "InPremium",
+            "location": "Москва"
+        }
+    }
+})):
+    async with async_session_maker() as session:
+        add_hotel_stmt = insert(HotelsModel).values(**hotel_data.model_dump())
+        # print(add_hotel_stmt.compile(engine, compile_kwargs={'literal_binds': True}))
+        await session.execute(add_hotel_stmt)
+        await session.commit()
+
     return {"status": "Ok"}
 
 def find_hotel(hotel_id: int):
