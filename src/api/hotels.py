@@ -1,4 +1,5 @@
-from src.schemas.hotels import Hotel, UpdateHotel
+from repositories.hotels import HotelsRepository
+from src.schemas.hotels import Hotels, UpdateHotels
 from fastapi import Query, APIRouter, Body
 from sqlalchemy import insert, select, update, delete
 from src.api.dependencies import PaginationDep
@@ -12,33 +13,19 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 @router.get("")
 async def get_hotels(
     pagination: PaginationDep,
-    id: int | None = Query(None, description="Айдишник"),
     title: str | None = Query(None, description="Название отеля"),
     location: str | None = Query(None, description="Город"),   
 ):
-
+    
     async with async_session_maker() as session:
-        query = select(HotelsModel)
-        if id:
-            query = query.where(HotelsModel.id==id)
-        if title:
-            query = query.where(HotelsModel.title.ilike(f"%{title}%"))
-        if location:
-            query = query.where(HotelsModel.location.ilike(f"%{location}%"))
-        query = (
-            query
-            .limit(pagination.per_page)
-            .offset(pagination.per_page * (pagination.page-1))
-        )
-        result = await session.execute(query)
-        hotels = result.scalars().all()
-        # print(query.compile(engine, compile_kwargs={'literal_binds': True}))  # -- Проверка SQL запроса в терминале
-        # print(type(hotels), hotels)
-        return hotels
+        return await HotelsRepository(session).get_all(title, 
+                                                       location, 
+                                                       pagination.per_page, 
+                                                       pagination.per_page * (pagination.page-1))
 
 
 @router.post("")
-async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
+async def create_hotel(hotel_data: Hotels = Body(openapi_examples={
     '1': {
         "summary": 'Отель в Дубае',
         "value": {
@@ -62,14 +49,14 @@ async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
 
     return {"status": "Ok"}
 
-async def find_hotel(hotel_id: int) -> Hotel:
+async def find_hotel(hotel_id: int) -> Hotels:
     async with async_session_maker() as session:
         query = select(HotelsModel).where(HotelsModel.id == hotel_id)
         result = await session.execute(query)
         hotel = result.scalar_one_or_none()
     
     if hotel:
-        return Hotel.model_validate(hotel, from_attributes=True)
+        return Hotels.model_validate(hotel, from_attributes=True)
     
     return None
 
@@ -88,7 +75,7 @@ async def delete_hotel(hotel_id: int):
     return {"status": f"hotel {hotel_id} is deleted"}
 
 @router.put("/{hotel_id}")
-async def update_hotel(hotel_id: int, hotel: UpdateHotel):
+async def update_hotel(hotel_id: int, hotel: UpdateHotels):
     existing_hotel = find_hotel(hotel_id)
 
     if existing_hotel is None:
@@ -109,7 +96,7 @@ async def update_hotel(hotel_id: int, hotel: UpdateHotel):
     return {"message": f"Информация обновлена = {update_hotel}"}
 
 @router.patch("/{hotel_id}", summary="Частичное обновление данных об отеле", description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>")
-async def edit_hotel(hotel_id: int, hotel: UpdateHotel | None = Body(None)):
+async def edit_hotel(hotel_id: int, hotel: UpdateHotels | None = Body(None)):
     existing_hotel = await find_hotel(hotel_id)
 
     if existing_hotel is None:

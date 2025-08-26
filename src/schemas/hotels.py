@@ -1,9 +1,9 @@
 from pydantic import BaseModel, Field
 
-class Hotel(BaseModel):
+class Hotels(BaseModel):
     title: str
     location: str
 
-class UpdateHotel(BaseModel):
+class UpdateHotels(BaseModel):
     title: str | None = Field(None)
     location: str | None = Field(None)
