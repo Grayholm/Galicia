@@ -1,6 +1,6 @@
 from src.schemas.hotels import Hotel, UpdateHotel
 from fastapi import Query, APIRouter, Body
-from sqlalchemy import insert, select, update
+from sqlalchemy import insert, select, update, delete
 from src.api.dependencies import PaginationDep
 from src.db import async_session_maker
 from src.models.hotels import HotelsModel
@@ -36,10 +36,6 @@ async def get_hotels(
         # print(type(hotels), hotels)
         return hotels
 
-
-@router.delete("/{hotel_id}")
-async def delete_hotel(hotel_id: int):
-    return {"status": f"hotel {hotel_id} is deleted"}
 
 @router.post("")
 async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
@@ -77,20 +73,40 @@ async def find_hotel(hotel_id: int) -> Hotel:
     
     return None
 
-@router.put("/{hotel_id}")
-async def update_hotel(hotel_id: int, hotel: UpdateHotel):
-    hotel_ = find_hotel(hotel_id)
+@router.delete("/{hotel_id}")
+async def delete_hotel(hotel_id: int):
+    hotel = find_hotel(hotel_id)
 
-    if hotel_ == None:
+    if hotel is None:
         return {"message": "Hotel with that ID is not found"}
     
-    if not hotel.title and hotel.location:
-        return {"message": "Заполнены не все поля"}
-    else:
-        hotel_["city"] = hotel.city
-        hotel_["name"] = hotel.name
+    async with async_session_maker() as session:
+        delete_hotel_stmt = delete(HotelsModel).where(HotelsModel.id == hotel_id)
+        await session.execute(delete_hotel_stmt)
+        await session.commit()
 
-    return {"message": "Информация обновлена"}
+    return {"status": f"hotel {hotel_id} is deleted"}
+
+@router.put("/{hotel_id}")
+async def update_hotel(hotel_id: int, hotel: UpdateHotel):
+    existing_hotel = find_hotel(hotel_id)
+
+    if existing_hotel is None:
+        return {"message": "Hotel with that ID is not found"}
+    
+    if hotel is None:
+        return {"message": "Заполнены не все поля"}
+    
+    update_data = hotel.model_dump()
+
+    async with async_session_maker() as session:
+        update_hotel_stmt = update(HotelsModel).where(HotelsModel.id == hotel_id).values(**update_data)
+        await session.execute(update_hotel_stmt)
+        await session.commit()
+    
+    update_hotel = find_hotel(hotel_id)
+
+    return {"message": f"Информация обновлена = {update_hotel}"}
 
 @router.patch("/{hotel_id}", summary="Частичное обновление данных об отеле", description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>")
 async def edit_hotel(hotel_id: int, hotel: UpdateHotel | None = Body(None)):
