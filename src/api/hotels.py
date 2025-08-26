@@ -19,13 +19,22 @@ async def get_hotels(
 
     async with async_session_maker() as session:
         query = select(HotelsModel)
+        if id:
+            query = query.where(HotelsModel.id==id)
+        if title:
+            query = query.where(HotelsModel.title.ilike(f"%{title}%"))
+        if location:
+            query = query.where(HotelsModel.location.ilike(f"%{location}%"))
+        query = (
+            query
+            .limit(pagination.per_page)
+            .offset(pagination.per_page * (pagination.page-1))
+        )
         result = await session.execute(query)
         hotels = result.scalars().all()
+        # print(query.compile(engine, compile_kwargs={'literal_binds': True}))  # -- Проверка SQL запроса в терминале
         # print(type(hotels), hotels)
         return hotels
-
-    # if pagination.page and pagination.per_page:
-    #     return hotels[pagination.per_page * (pagination.page-1):][:pagination.per_page]
 
 
 @router.delete("/{hotel_id}")
