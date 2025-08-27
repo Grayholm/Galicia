@@ -1,5 +1,5 @@
 from repositories.hotels import HotelsRepository
-from src.schemas.hotels import Hotels, UpdateHotels
+from src.schemas.hotels import Hoteladd, UpdateHotel
 from fastapi import Query, APIRouter, Body
 from src.api.dependencies import PaginationDep
 from src.db import async_session_maker
@@ -25,11 +25,14 @@ async def get_hotels(
 async def get_one_hotel_by_id(hotel_id: int):
     async with async_session_maker() as session:
         result = await HotelsRepository(session).find_one(hotel_id)
-        return result
+        if result is not None:
+            return result
+        
+        return {"message": f"Отель с ID = {hotel_id} не найден"}
 
 
 @router.post("")
-async def create_hotel(hotel_data: Hotels = Body(openapi_examples={
+async def create_hotel(hotel_data: Hoteladd = Body(openapi_examples={
     '1': {
         "summary": 'Отель в Дубае',
         "value": {
@@ -50,7 +53,7 @@ async def create_hotel(hotel_data: Hotels = Body(openapi_examples={
         created_hotel = await HotelsRepository(session).add_hotels(hotel_data)
         await session.commit()
 
-    return {"status": "Ok", "data": {created_hotel}}
+    return {"status": "Ok", "data": created_hotel}
 
 
 @router.delete("/{hotel_id}")
@@ -65,7 +68,7 @@ async def delete_hotel(hotel_id: int):
     return {"message": "Hotel with that ID is not found"}
 
 @router.put("/{hotel_id}")
-async def update_hotel(hotel_id: int, hotel: UpdateHotels):
+async def update_hotel(hotel_id: int, hotel: UpdateHotel):
     if hotel is None:
         return {"message": "Заполнены не все поля"}
 
@@ -79,7 +82,7 @@ async def update_hotel(hotel_id: int, hotel: UpdateHotels):
     return {"message": "Hotel with that ID is not found"}
 
 @router.patch("/{hotel_id}", summary="Частичное обновление данных об отеле", description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>")
-async def edit_hotel(hotel_id: int, hotel: UpdateHotels | None = Body(None)):
+async def edit_hotel(hotel_id: int, hotel: UpdateHotel | None = Body(None)):
     if hotel is None:
         return {"message": "No data to update"}
     
