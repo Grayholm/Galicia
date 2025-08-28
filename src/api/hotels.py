@@ -50,7 +50,7 @@ async def create_hotel(hotel_data: Hoteladd = Body(openapi_examples={
 })):
         
     async with async_session_maker() as session:
-        created_hotel = await HotelsRepository(session).add_hotels(hotel_data)
+        created_hotel = await HotelsRepository(session).add(hotel_data)
         await session.commit()
 
     return {"status": "Ok", "data": created_hotel}
@@ -59,7 +59,7 @@ async def create_hotel(hotel_data: Hoteladd = Body(openapi_examples={
 @router.delete("/{hotel_id}")
 async def delete_hotel(hotel_id: int):  
     async with async_session_maker() as session:
-        deleted_hotel = await HotelsRepository(session).delete_hotel(hotel_id)
+        deleted_hotel = await HotelsRepository(session).delete(hotel_id)
         await session.commit()
 
     if deleted_hotel is None:
@@ -69,11 +69,11 @@ async def delete_hotel(hotel_id: int):
 
 @router.put("/{hotel_id}")
 async def update_hotel(hotel_id: int, hotel: UpdateHotel):
-    if hotel is None:
+    if hotel.title or hotel.location is None:
         return {"message": "Заполнены не все поля"}
 
     async with async_session_maker() as session:
-        updated_hotel = await HotelsRepository(session).update_hotel(hotel_id, hotel)
+        updated_hotel = await HotelsRepository(session).update(hotel, hotel_id)
         await session.commit()
     
     if updated_hotel is not None:
@@ -87,7 +87,7 @@ async def edit_hotel(hotel_id: int, hotel: UpdateHotel | None = Body(None)):
         return {"message": "No data to update"}
     
     async with async_session_maker() as session:
-        edited_hotel = await HotelsRepository(session).edit_hotel(hotel_id, hotel)
+        edited_hotel = await HotelsRepository(session).update(hotel, hotel_id)
         await session.commit()
 
     if edited_hotel is not None:

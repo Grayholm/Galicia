@@ -1,5 +1,6 @@
 from models.rooms import RoomsModel
+from src.repositories.base import BaseRepository
 
 
-class RoomsRepository:
+class RoomsRepository(BaseRepository):
     model = RoomsModel

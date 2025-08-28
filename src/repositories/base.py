@@ -7,10 +7,13 @@ class BaseRepository:
     def __init__(self, session):
         self.session = session
 
-    async def get_all(self):
-        query = select(self.model)
+    async def get_filtered(self, filter: dict):
+        query = select(self.model).filter_by(**filter)
         result = await self.session.execute(query)
         return result.scalars().all()
+
+    async def get_all(self):
+        return await self.get_filtered()
     
     async def find_one(self, id_by):
         query = select(self.model).where(self.model.id == id_by)
@@ -23,49 +26,27 @@ class BaseRepository:
         return None
     
     
-    async def add_hotels(self, hotel_data: BaseModel):
-        add_hotel_stmt = insert(self.model).values(**hotel_data.model_dump()).returning(self.model)
+    async def add(self, data: BaseModel):
+        add_stmt = insert(self.model).values(**data.model_dump(exclude_unset=True)).returning(self.model)
         # print(add_hotel_stmt.compile(engine, compile_kwargs={'literal_binds': True}))
-        result = await self.session.execute(add_hotel_stmt)
+        result = await self.session.execute(add_stmt)
 
-        created_hotel = self.schema.model_validate(result.scalar_one_or_none())
+        created = self.schema.model_validate(result.scalar_one_or_none(), from_attributes=True)
 
-        return created_hotel
-    
-    
-    async def delete_hotel(self, hotel_id):
-        existing_hotel = self.find_one(hotel_id)
-        if existing_hotel is None:
-            return existing_hotel
-        delete_hotel_stmt = delete(self.model).where(self.model.id == hotel_id)
-        await self.session.execute(delete_hotel_stmt)
+        return created
 
 
-    async def update_hotel(self, hotel_id, hotel: BaseModel):
-        update_data = hotel.model_dump()
-        existing_hotel = await self.find_one(hotel_id)
-
-        if existing_hotel is None:
-            return existing_hotel
+    async def update(self, data: BaseModel, id):
+        update_data = data.model_dump(exclude_unset=True)
         
-        update_hotel_stmt = update(self.model).where(self.model.id == hotel_id).values(**update_data).returning(self.model)
-        result = await self.session.execute(update_hotel_stmt)
+        update_stmt = update(self.model).where(self.model.id == id).values(**update_data).returning(self.model)
+        result = await self.session.execute(update_stmt)
 
-        edited_hotel = self.schema.model_validate(result.scalar_one_or_none())
+        edited = self.schema.model_validate(result.scalar_one_or_none())
 
-        return edited_hotel
+        return edited
 
-
-    async def edit_hotel(self, hotel_id, hotel: BaseModel | None):
-        update_data = hotel.model_dump(exclude_unset=True)
-        existing_hotel = await self.find_one(hotel_id)
-
-        if existing_hotel is None:
-            return existing_hotel
         
-        edit_hotel_stmt = update(self.model).where(self.model.id == hotel_id).values(**update_data).returning(self.model)
-        result = await self.session.execute(edit_hotel_stmt)
-
-        edited_hotel = self.schema.model_validate(result.scalar_one_or_none())
-
-        return edited_hotel
+    async def delete(self, id: dict):
+        delete_stmt = delete(self.model).where(self.model.id == id)
+        await self.session.execute(delete_stmt)
