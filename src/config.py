@@ -1,6 +1,4 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-# from pydantic import SecretStr
-# from pathlib import Path
 
 class Settings(BaseSettings):
     DB_HOST: str
@@ -8,8 +6,6 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASS: str
     DB_NAME: str
-    # SECRET_KEY: SecretStr
-    # DEBUG: bool = False
 
     @property
     def db_url(self):

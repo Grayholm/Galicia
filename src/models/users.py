@@ -12,6 +12,6 @@ class UsersModel(Base):
     last_name: Mapped[str] = mapped_column(String(50))
     nickname: Mapped[str] = mapped_column(String(100))
     birth_day: Mapped[int]
-    email: Mapped[str] = mapped_column(String(200))
-    phone_number: Mapped[str] = mapped_column(String(50), unique=True)
+    email: Mapped[str] = mapped_column(String(200), unique=True, index=True)
+    phone_number: Mapped[str] = mapped_column(String(50), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(200))
