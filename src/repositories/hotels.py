@@ -26,12 +26,3 @@ class HotelsRepository(BaseRepository):
         # print(query.compile(engine, compile_kwargs={'literal_binds': True}))  # -- Проверка SQL запроса в терминале
         # print(type(hotels), hotels)
         return hotels
-    
-    # async def add_hotels(self, hotel_data: Hotel):
-    #     add_hotel_stmt = insert(self.model).values(**hotel_data.model_dump()).returning(self.model)
-    #     # print(add_hotel_stmt.compile(engine, compile_kwargs={'literal_binds': True}))
-    #     result = await self.session.execute(add_hotel_stmt)
-
-    #     created_hotel = result.scalar_one()
-
-    #     return created_hotel
