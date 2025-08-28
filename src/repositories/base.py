@@ -30,10 +30,7 @@ class BaseRepository:
     async def add(self, data: BaseModel):
         add_stmt = insert(self.model).values(**data.model_dump(exclude_unset=True)).returning(self.model)
         # print(add_hotel_stmt.compile(engine, compile_kwargs={'literal_binds': True}))
-        try:
-            result = await self.session.execute(add_stmt)
-        except IntegrityError as e:
-            return (e)
+        result = await self.session.execute(add_stmt)
 
         created = self.schema.model_validate(result.scalar_one_or_none(), from_attributes=True)
 
