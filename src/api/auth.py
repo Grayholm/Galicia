@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Response, Request
 
 from src.services.auth import AuthService
 from src.schemas.users import UserRequestAddRegister, UserAdd, UserLogin
@@ -43,3 +43,12 @@ async def login_user(
         access_token = AuthService().create_access_token({"user_id": user.id})
         response.set_cookie("access_token", access_token)
         return {"access_token": access_token}
+    
+
+async def get_cookie(request: Request):
+    access_token = request.cookies.get("access_token")
+
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Куки-токен не найден")
+    
+    return {"access_token": access_token}
