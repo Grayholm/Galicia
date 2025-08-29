@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
+from fastapi import HTTPException
 import jwt
 from passlib.context import CryptContext
 from config import settings
@@ -21,4 +22,8 @@ class AuthService:
     def hash_password(self, password: str) -> str:
         return self.pwd_context.hash(password)
     
-auth = AuthService()
+    def decode_token(self, token: str) -> dict:
+        try:
+            return jwt.decode(token, settings.JWT_SECRET_KEY.get_secret_value(), algorithms=[settings.JWT_ALGORITHM])
+        except jwt.exceptions.InvalidSignatureError:
+            raise HTTPException(status_code=401, detail="Ошибка: Неверная подпись(токен)")

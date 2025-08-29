@@ -21,6 +21,9 @@ class UserLogin(BaseModel):
     password: str
 
 class User(BaseModel):
+    first_name: str
+    last_name: str
+    birth_day: int
     id: int
     nickname: str
     email: EmailStr
