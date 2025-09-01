@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from pydantic import BaseModel, Field, EmailStr
 
 class UserRequestAddRegister(BaseModel):
     first_name: str | None = Field("John")

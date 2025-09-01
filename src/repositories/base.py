@@ -43,7 +43,7 @@ class BaseRepository:
         update_stmt = update(self.model).where(self.model.id == id).values(**update_data).returning(self.model)
         result = await self.session.execute(update_stmt)
 
-        edited = self.schema.model_validate(result.scalar_one_or_none())
+        edited = self.schema.model_validate(result.scalar_one_or_none(), from_attributes=True)
 
         return edited
 
