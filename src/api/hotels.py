@@ -1,6 +1,6 @@
 from repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hoteladd, UpdateHotel
-from fastapi import Query, APIRouter, Body
+from fastapi import Query, APIRouter, Body, HTTPException
 from src.api.dependencies import PaginationDep
 from src.db import async_session_maker
 # from src.db import engine
@@ -24,7 +24,7 @@ async def get_hotels(
 @router.get("/{hotel_id}")
 async def get_one_hotel_by_id(hotel_id: int):
     async with async_session_maker() as session:
-        result = await HotelsRepository(session).get_one_or_none(hotel_id)
+        result = await HotelsRepository(session).get_one_or_none(id=hotel_id)
         if result is not None:
             return result
         
@@ -84,7 +84,13 @@ async def update_hotel(hotel_id: int, hotel: UpdateHotel):
 @router.patch("/{hotel_id}", summary="Частичное обновление данных об отеле", description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>")
 async def edit_hotel(hotel_id: int, hotel: UpdateHotel | None = Body(None)):
     if hotel is None:
-        return {"message": "No data to update"}
+        return {"message": "Отсутствуют данные для обновления"}
+    
+    if all(value is None for value in hotel.model_dump().values()):
+        raise HTTPException(
+            status_code=400,
+            detail="Отсутствуют данные для обновления"
+        )
     
     async with async_session_maker() as session:
         edited_hotel = await HotelsRepository(session).update(hotel, hotel_id)

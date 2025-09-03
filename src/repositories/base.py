@@ -1,6 +1,7 @@
 from sqlalchemy import select, delete, update, insert
 from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel
+from fastapi import HTTPException
 
 class BaseRepository:
     model = None
@@ -48,6 +49,11 @@ class BaseRepository:
         return edited
 
         
-    async def delete(self, id: dict):
+    async def delete(self, id: int):
         delete_stmt = delete(self.model).where(self.model.id == id)
-        await self.session.execute(delete_stmt)
+        result = await self.session.execute(delete_stmt)
+
+        if result.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Комната не найдена")
+        
+        return {"message": "Комната успешно удалена"}

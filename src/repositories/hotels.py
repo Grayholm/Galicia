@@ -1,7 +1,7 @@
-from sqlalchemy import select, insert, update, delete
+from sqlalchemy import select
 
 from src.models.hotels import HotelsModel
-from src.schemas.hotels import Hotel, UpdateHotel
+from src.schemas.hotels import Hotel
 from src.repositories.base import BaseRepository
 
 
