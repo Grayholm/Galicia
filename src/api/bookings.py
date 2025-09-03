@@ -7,7 +7,7 @@ from utils.auth_utils import UserIdDep
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
 @router.get("{user_id}")
-async def get_bookings(
+async def get_my_bookings(
     user_id: UserIdDep,
     db: DBDep,
 ):
@@ -16,6 +16,16 @@ async def get_bookings(
 
     if not bookings_data:
         return {"message": "У вас нет бронирований"}
+    
+    return bookings_data
+
+
+@router.get("")
+async def get_all_bookings(
+    db: DBDep,
+):
+    bookings_data = await db.bookings.get_all()
+    await db.commit()
     
     return bookings_data
 
