@@ -6,7 +6,21 @@ from utils.auth_utils import UserIdDep
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
-@router.post("{user_id}")
+@router.get("{user_id}")
+async def get_bookings(
+    user_id: UserIdDep,
+    db: DBDep,
+):
+    bookings_data = await db.bookings.get_filtered(user_id=user_id)
+    await db.commit()
+
+    if not bookings_data:
+        return {"message": "У вас нет бронирований"}
+    
+    return bookings_data
+
+
+@router.post("")
 async def add_booking(
     user_id: UserIdDep, 
     db: DBDep, 
@@ -22,3 +36,21 @@ async def add_booking(
     await db.commit()
 
     return {"status": "Ok", "data": result}
+
+
+@router.delete("{booking_id}")
+async def delete_booking(
+    user_id: UserIdDep, 
+    db: DBDep, 
+    booking_id: int
+):  
+    deleted_booking = await db.bookings.delete(user_id=user_id, id=booking_id)
+    await db.commit()
+
+    if deleted_booking is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Бронирование с таким ID {booking_id} не найден"
+        )
+    
+    return {"status": f"Бронирование {booking_id} успешно удалено"}

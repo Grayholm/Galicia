@@ -54,6 +54,6 @@ class BaseRepository:
         result = await self.session.execute(delete_stmt)
 
         if result.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Комната не найдена")
+            raise HTTPException(status_code=404, detail="Object is not found")
         
-        return {"message": "Комната успешно удалена"}
+        return {"message": "OK"}
