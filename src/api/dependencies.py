@@ -3,6 +3,8 @@ from fastapi import Query, Depends, Request, HTTPException
 from pydantic import BaseModel, Field
 
 from services.auth import AuthService
+from utils.db_manager import DBManager
+from src.db import async_session_maker
 
 
 class PaginationParams(BaseModel):
@@ -34,3 +36,9 @@ class ItemFilter(BaseModel):
     price_max: float | None = Field(None, description="Максимальная цена")
 
 RoomsFilterDep = Annotated[ItemFilter, Depends()]
+
+async def get_db():
+    async with DBManager(session_factory=async_session_maker()) as db:
+        yield db
+
+DBDep = Annotated[DBManager, Depends(get_db)]
