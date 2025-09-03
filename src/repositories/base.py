@@ -9,7 +9,7 @@ class BaseRepository:
     def __init__(self, session):
         self.session = session
 
-    async def get_filtered(self, filter: dict):
+    async def get_filtered(self, **filter):
         query = select(self.model).filter_by(**filter)
         result = await self.session.execute(query)
         return result.scalars().all()
@@ -38,10 +38,10 @@ class BaseRepository:
         return created
 
 
-    async def update(self, data: BaseModel, id):
+    async def update(self, data: BaseModel, **filter):
         update_data = data.model_dump(exclude_unset=True)
         
-        update_stmt = update(self.model).where(self.model.id == id).values(**update_data).returning(self.model)
+        update_stmt = update(self.model).filter_by(**filter).values(**update_data).returning(self.model)
         result = await self.session.execute(update_stmt)
 
         edited = self.schema.model_validate(result.scalar_one_or_none(), from_attributes=True)
@@ -49,8 +49,8 @@ class BaseRepository:
         return edited
 
         
-    async def delete(self, id: int):
-        delete_stmt = delete(self.model).where(self.model.id == id)
+    async def delete(self, **filter):
+        delete_stmt = delete(self.model).filter_by(**filter)
         result = await self.session.execute(delete_stmt)
 
         if result.rowcount == 0:

@@ -69,11 +69,11 @@ async def delete_hotel(hotel_id: int):
 
 @router.put("/{hotel_id}")
 async def update_hotel(hotel_id: int, hotel: UpdateHotel):
-    if hotel.title or hotel.location is None:
+    if hotel.title is None or hotel.location is None:
         return {"message": "Заполнены не все поля"}
 
     async with async_session_maker() as session:
-        updated_hotel = await HotelsRepository(session).update(hotel, hotel_id)
+        updated_hotel = await HotelsRepository(session).update(hotel, id=hotel_id)
         await session.commit()
     
     if updated_hotel is not None:
@@ -93,7 +93,7 @@ async def edit_hotel(hotel_id: int, hotel: UpdateHotel | None = Body(None)):
         )
     
     async with async_session_maker() as session:
-        edited_hotel = await HotelsRepository(session).update(hotel, hotel_id)
+        edited_hotel = await HotelsRepository(session).update(hotel, id=hotel_id)
         await session.commit()
 
     if edited_hotel is not None:

@@ -9,11 +9,9 @@ class RoomsRepository(BaseRepository):
     model = RoomsModel
     schema = Room
 
-    async def get_rooms(self, filters):
-        query = select(self.model)
+    async def get_rooms(self, hotel_id, filters):
+        query = select(self.model).filter_by(hotel_id=hotel_id)
 
-        if filters.hotel_id:
-            query = query.where(self.model.hotel_id == filters.hotel_id)
         if filters.title:
             query = query.where(self.model.title.ilike(f"%{filters.title}%"))
         if filters.price_min is not None:

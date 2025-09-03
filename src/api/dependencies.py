@@ -28,7 +28,7 @@ UserIdDep = Annotated[int, Depends(get_current_user_id)]
 
 
 class ItemFilter(BaseModel):
-    hotel_id: int | None = Field(None, description="Айди отеля")
+    hotel_id: int = Field(..., description="Айди отеля")
     title: str | None = Field(None, description="Фильтр по имени")
     price_min: float | None = Field(None, description="Минимальная цена")
     price_max: float | None = Field(None, description="Максимальная цена")

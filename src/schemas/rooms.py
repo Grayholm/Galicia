@@ -1,6 +1,13 @@
 from pydantic import BaseModel, Field, ConfigDict
 
 
+class RoomAddRequest(BaseModel):
+    title: str
+    description: str
+    price: int
+    quantity: int
+
+
 class RoomAdd(BaseModel):
     hotel_id: int
     title: str
@@ -11,9 +18,15 @@ class RoomAdd(BaseModel):
 class Room(RoomAdd):
     id: int
 
+class RoomUpdateRequest(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    price: int | None = None
+    quantity: int | None = None
+
 class RoomUpdate(BaseModel):
-    hotel_id: int | None = Field(None)
-    title: str | None = Field(None)
-    description: str | None = Field(None)
-    price: int | None = Field(None)
-    quantity: int | None = Field(None)
+    hotel_id: int
+    title: str | None = None
+    description: str | None = None
+    price: int | None = None
+    quantity: int | None = None

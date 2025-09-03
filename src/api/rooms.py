@@ -2,36 +2,32 @@ from fastapi import APIRouter, HTTPException, Body
 from src.api.dependencies import RoomsFilterDep
 from src.repositories.rooms import RoomsRepository
 from src.db import async_session_maker
-from src.schemas.rooms import RoomAdd, RoomUpdate
+from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomUpdate, RoomUpdateRequest
 
-router = APIRouter(prefix="/rooms", tags=["Номера"])
+router = APIRouter(prefix="/hotels", tags=["Номера"])
 
-@router.get("")
-async def get_rooms_by_filter(filter: RoomsFilterDep):
-    # if all(value is None for value in filter.model_dump().values()):
-    #     raise HTTPException(
-    #         status_code=400,
-    #         detail="Хотя бы один параметр фильтрации должен быть указан"
-    #     )
-    
+@router.get("/{hotel_id}/rooms")
+async def get_rooms_by_filter(hotel_id: int, filter: RoomsFilterDep):
     async with async_session_maker() as session:
-        result = await RoomsRepository(session).get_rooms(filter)
+        result = await RoomsRepository(session).get_rooms(hotel_id, filter)
 
         return {"Комнаты": result}
     
 
-@router.get("/{room_id}")
-async def get_one_room_by_id(room_id: int):
+
+@router.get("/{hotel_id}/rooms/{room_id}")
+async def get_one_room_by_id(hotel_id: int, room_id: int):
     async with async_session_maker() as session:
-        result = await RoomsRepository(session).get_one_or_none(id=room_id)
+        result = await RoomsRepository(session).get_one_or_none(id=room_id, hotel_id=hotel_id)
         if result is not None:
             return result
         
         return {"message": f"Номер с ID = {room_id} не найден"}
     
+
     
-@router.post("{hotel_id}")
-async def create_room(data: RoomAdd = Body(openapi_examples={
+@router.post("/{hotel_id}/rooms")
+async def create_room(hotel_id: int, data: RoomAddRequest = Body(openapi_examples={
     '1': {
         "summary": "Отель номер 1",
         "value": {
@@ -43,17 +39,19 @@ async def create_room(data: RoomAdd = Body(openapi_examples={
         }
     }
 })):
+    room_data = RoomAdd(hotel_id=hotel_id, **data.model_dump())
     async with async_session_maker() as session:
-        result = await RoomsRepository(session).add(data)
+        result = await RoomsRepository(session).add(room_data)
         
         await session.commit()
     return {"Номер добавлен": result}
 
 
-@router.delete("{room_id}")
-async def delete_room(room_id: int):
+
+@router.delete("/{hotel_id}/rooms/{room_id}")
+async def delete_room(hotel_id: int, room_id: int):
     async with async_session_maker() as session:
-        deleted_room = await RoomsRepository(session).delete(room_id)
+        deleted_room = await RoomsRepository(session).delete(hotel_id=hotel_id, id=room_id)
         await session.commit()
 
     if deleted_room is None:
@@ -65,8 +63,9 @@ async def delete_room(room_id: int):
     return {"status": f"Комната {room_id} успешно удалена"}
 
 
-@router.put("/{room_id}", summary="Полное обновление данных", description="Тут мы полностью обновляем данные, каждый параметр")
-async def update_room(room_id: int, data: RoomUpdate):
+
+@router.put("/{hotel_id}/rooms/{room_id}", summary="Полное обновление данных", description="Тут мы полностью обновляем данные, каждый параметр")
+async def update_room(data: RoomUpdateRequest, hotel_id: int, room_id: int):
     if data is None:
         return {"message": "Отсутствуют данные для обновления"}
     
@@ -76,9 +75,15 @@ async def update_room(room_id: int, data: RoomUpdate):
             detail="Некоторые параметры пусты"
         )
 
-    async with async_session_maker() as session:
-        updated_room = await RoomsRepository(session).update(data, room_id)
-        await session.commit()
+    room_data = RoomUpdate(hotel_id=hotel_id, **data.model_dump())
+
+    try:
+        async with async_session_maker() as session:
+            updated_room = await RoomsRepository(session).update(room_data, id=room_id, hotel_id=hotel_id)
+            await session.commit()
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=404, detail="Не найдена комната с заданными параметрами(Неправильное ID отеля и/или номера)")
     
     if updated_room is not None:
         return {"message": f"Информация обновлена = {updated_room}"}
@@ -86,17 +91,23 @@ async def update_room(room_id: int, data: RoomUpdate):
     return {"message": "Номер с таким ID не был найден"}
 
 
-@router.patch("/{hotel_id}", summary="Частичное обновление данных об отеле", description="Тут мы частично обновляем данные")
-async def edit_hotel(room_id: int, data: RoomUpdate | None = Body(None)):
+
+@router.patch("/{hotel_id}/rooms/{room_id}", summary="Частичное обновление данных об отеле", description="Тут мы частично обновляем данные")
+async def edit_hotel(hotel_id: int, room_id: int, data: RoomUpdateRequest | None = Body(None)):
     if data is None or all(value is None for value in data.model_dump().values()):
         raise HTTPException(
             status_code=400,
             detail="Отсутствуют данные для обновления"
         )
     
-    async with async_session_maker() as session:
-        edited_room = await RoomsRepository(session).update(data, room_id)
-        await session.commit()
+    room_data = RoomUpdate(hotel_id=hotel_id, **data.model_dump(exclude_unset=True))
+
+    try:
+        async with async_session_maker() as session:
+            edited_room = await RoomsRepository(session).update(room_data, id=room_id, hotel_id=hotel_id)
+            await session.commit()
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Не найдена комната с заданными параметрами(Неправильное ID отеля и/или номера)")
 
     if edited_room is not None:
         return {"message": f"Информация обновлена = {edited_room}"}
