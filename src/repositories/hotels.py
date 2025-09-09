@@ -1,5 +1,7 @@
 from sqlalchemy import select
 
+from models.rooms import RoomsModel
+from repositories.utils import get_rooms_ids_for_booking
 from src.models.hotels import HotelsModel
 from src.schemas.hotels import Hotel
 from src.repositories.base import BaseRepository
@@ -26,3 +28,13 @@ class HotelsRepository(BaseRepository):
         # print(query.compile(engine, compile_kwargs={'literal_binds': True}))  # -- Проверка SQL запроса в терминале
         # print(type(hotels), hotels)
         return hotels
+    
+    async def get_hotels_by_time(self, date_from, date_to):
+        rooms_ids = get_rooms_ids_for_booking(date_from, date_to)
+        hotels_ids = (
+            select(RoomsModel.hotel_id)
+            .select_from(RoomsModel)
+            .where(RoomsModel.id.in_(rooms_ids))
+        )
+
+        return await self.get_filtered(HotelsModel.id.in_(hotels_ids))

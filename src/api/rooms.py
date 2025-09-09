@@ -1,14 +1,18 @@
-from fastapi import APIRouter, HTTPException, Body
+from datetime import date
+from fastapi import APIRouter, HTTPException, Body, Query
 from src.api.dependencies import DBDep, RoomsFilterDep
-from src.repositories.rooms import RoomsRepository
-from src.db import async_session_maker
 from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomUpdate, RoomUpdateRequest
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
 
 @router.get("/{hotel_id}/rooms")
-async def get_rooms_by_filter(hotel_id: int, filter: RoomsFilterDep, db: DBDep):
-    result = await db.rooms.get_rooms(hotel_id, filter)
+async def get_rooms_by_filter(
+    hotel_id: int, 
+    db: DBDep, 
+    filter: RoomsFilterDep, 
+    date_from: date = Query(), 
+    date_to: date = Query()):
+    result = await db.rooms.get_rooms(hotel_id, filter, date_from, date_to)
 
     return {"Комнаты": result}
     

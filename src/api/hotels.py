@@ -1,3 +1,4 @@
+from datetime import date
 from repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hoteladd, UpdateHotel
 from fastapi import Query, APIRouter, Body, HTTPException
@@ -13,13 +14,17 @@ async def get_hotels(
     pagination: PaginationDep,
     db: DBDep,
     title: str | None = Query(None, description="Название отеля"),
-    location: str | None = Query(None, description="Город"),   
+    location: str | None = Query(None, description="Город"),
+    date_from: date = Query(example='2025-09-15'), 
+    date_to: date = Query(example='2025-09-20')  
 ):
     
-    return await db.hotels.get_hotels(title, 
-                                    location, 
-                                    pagination.per_page, 
-                                    pagination.per_page * (pagination.page-1))
+    return await db.hotels.get_hotels_by_time(date_from, date_to)
+    
+    # return await db.hotels.get_hotels(title, 
+    #                                 location, 
+    #                                 pagination.per_page, 
+    #                                 pagination.per_page * (pagination.page-1))
     
 @router.get("/{hotel_id}")
 async def get_one_hotel_by_id(hotel_id: int, db: DBDep):
