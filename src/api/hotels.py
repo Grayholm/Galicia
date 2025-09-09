@@ -19,7 +19,14 @@ async def get_hotels(
     date_to: date = Query(example='2025-09-20')  
 ):
     
-    return await db.hotels.get_hotels_by_time(date_from, date_to)
+    return await db.hotels.get_hotels_by_time(
+        title, 
+        location, 
+        pagination.per_page, 
+        pagination.per_page * (pagination.page-1),
+        date_from, 
+        date_to
+        )
     
     # return await db.hotels.get_hotels(title, 
     #                                 location, 
