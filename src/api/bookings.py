@@ -12,7 +12,6 @@ async def get_my_bookings(
     db: DBDep,
 ):
     bookings_data = await db.bookings.get_filtered(user_id=user_id)
-    await db.commit()
 
     if not bookings_data:
         return {"message": "У вас нет бронирований"}
@@ -25,7 +24,6 @@ async def get_all_bookings(
     db: DBDep,
 ):
     bookings_data = await db.bookings.get_all()
-    await db.commit()
     
     return bookings_data
 
