@@ -1,5 +1,6 @@
 from datetime import date
 from fastapi import APIRouter, HTTPException, Body, Query
+from schemas.facilities import RoomFacilityAdd
 from src.api.dependencies import DBDep, RoomsFilterDep
 from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomUpdate, RoomUpdateRequest
 
@@ -33,19 +34,22 @@ async def create_room(hotel_id: int, db: DBDep, data: RoomAddRequest = Body(open
     '1': {
         "summary": "Отель номер 1",
         "value": {
-            "hotel_id": 13,
             "title": "Русь",
             "description": "Уютный номер из 2-ух комнат с большой кроватью",
             "price": 6499,
-            "quantity": 2
+            "quantity": 2,
+            "facilities_ids": [1, 2]
         }
     }
 })):
-    room_data = RoomAdd(hotel_id=hotel_id, **data.model_dump())
-    result = await db.rooms.add(room_data)
-        
+    room_data = RoomAdd(hotel_id=hotel_id, **data.model_dump(exclude_unset=True))
+    room = await db.rooms.add(room_data)
+
+    rooms_facilities_data = [RoomFacilityAdd(room_id=room.id, facility_id=f_id) for f_id in data.facilities_ids]
+    await db.rooms_facilities.add_bulk(rooms_facilities_data)
     await db.commit()
-    return {"Номер добавлен": result}
+
+    return {"Номер добавлен": room}
 
 
 
