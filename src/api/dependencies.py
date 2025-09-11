@@ -1,4 +1,3 @@
-from datetime import date
 from typing import Annotated
 from fastapi import Query, Depends
 from pydantic import BaseModel, Field
