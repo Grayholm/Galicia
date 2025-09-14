@@ -1,10 +1,12 @@
 from sqlalchemy import select, delete, update, insert
-from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel
 from fastapi import HTTPException
 
+from repositories.mappers.base import DataMapper
+
 class BaseRepository:
     model = None
+    mapper: DataMapper = None
 
     def __init__(self, session):
         self.session = session
@@ -12,7 +14,7 @@ class BaseRepository:
     async def get_filtered(self, *filter, **filters):
         query = select(self.model).filter(*filter).filter_by(**filters)
         result = await self.session.execute(query)
-        return result.scalars().all()
+        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
 
     async def get_all(self):
         return await self.get_filtered()
@@ -23,7 +25,7 @@ class BaseRepository:
         sth = result.scalar_one_or_none()
     
         if sth:
-            return self.schema.model_validate(sth, from_attributes=True)
+            return self.mapper.map_to_domain_entity(sth)
     
         return None
     
@@ -33,7 +35,7 @@ class BaseRepository:
         # print(add_hotel_stmt.compile(engine, compile_kwargs={'literal_binds': True}))
         result = await self.session.execute(add_stmt)
 
-        created = self.schema.model_validate(result.scalar_one_or_none(), from_attributes=True)
+        created = self.mapper.map_to_domain_entity(result.scalar_one_or_none())
 
         return created
     
@@ -48,7 +50,7 @@ class BaseRepository:
         update_stmt = update(self.model).filter_by(**filter).values(**update_data).returning(self.model)
         result = await self.session.execute(update_stmt)
 
-        edited = self.schema.model_validate(result.scalar_one_or_none(), from_attributes=True)
+        edited = self.mapper.map_to_domain_entity(result.scalar_one_or_none())
 
         return edited
 

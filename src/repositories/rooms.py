@@ -1,14 +1,14 @@
 from sqlalchemy import delete, insert, select, update
-from models.facilities import RoomsFacilitiesModel
-from repositories.utils import get_rooms_ids_for_booking
+from src.models.facilities import RoomsFacilitiesModel
+from src.repositories.mappers.mappers import RoomDataMapper, RoomWithRelsDataMapper
+from src.repositories.utils import get_rooms_ids_for_booking
 from src.models.rooms import RoomsModel
 from src.repositories.base import BaseRepository
-from src.schemas.rooms import Room, RoomsWithRels
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy.orm import joinedload
 
 class RoomsRepository(BaseRepository):
     model = RoomsModel
-    schema = Room
+    mapper = RoomDataMapper
 
     async def get_rooms(self, hotel_id, filters, date_from, date_to):
         rooms_ids_to_get = get_rooms_ids_for_booking(date_from, date_to, hotel_id)
@@ -29,7 +29,7 @@ class RoomsRepository(BaseRepository):
 
         result = await self.session.execute(query)
         rooms = result.unique().scalars().all()
-        return [RoomsWithRels.model_validate(room, from_attributes=True) for room in rooms]
+        return [RoomWithRelsDataMapper.map_to_domain_entity(room) for room in rooms]
     
     async def get_one_or_none(self, **filter):
         query = select(self.model).filter_by(**filter).options(joinedload(self.model.facilities))
@@ -37,7 +37,7 @@ class RoomsRepository(BaseRepository):
         sth = result.unique().scalar_one_or_none()
     
         if sth:
-            return RoomsWithRels.model_validate(sth, from_attributes=True)
+            return RoomWithRelsDataMapper.map_to_domain_entity(sth)
     
         return None
 

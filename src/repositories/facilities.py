@@ -1,11 +1,12 @@
-from models.facilities import RoomsFacilitiesModel, FacilitiesModel
-from repositories.base import BaseRepository
-from schemas.facilities import Facility, RoomFacility
+from repositories.mappers.mappers import FacilityDataMapper
+from src.models.facilities import RoomsFacilitiesModel, FacilitiesModel
+from src.repositories.base import BaseRepository
+from src.schemas.facilities import Facility, RoomFacility
 
 
 class FacilitiesRepository(BaseRepository):
     model = FacilitiesModel
-    schema = Facility
+    mapper = FacilityDataMapper
 
 class RoomsFacilitiesRepository(BaseRepository):
     model = RoomsFacilitiesModel

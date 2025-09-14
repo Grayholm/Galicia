@@ -1,11 +1,9 @@
 
-from models.bookings import BookingsModel
-from repositories.base import BaseRepository
-from schemas.bookings import Booking
+from src.models.bookings import BookingsModel
+from src.repositories.base import BaseRepository
+from src.repositories.mappers.mappers import BookingsDataMapper
 
 
 class BookingsRepository(BaseRepository):
     model = BookingsModel
-    schema = Booking
-
-    # async def add_booking(user_id: UserIdDep, )
+    mapper = BookingsDataMapper

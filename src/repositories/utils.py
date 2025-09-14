@@ -1,6 +1,6 @@
 from sqlalchemy import func, select
 
-from models.bookings import BookingsModel
+from src.models.bookings import BookingsModel
 from src.models.rooms import RoomsModel
 
 
