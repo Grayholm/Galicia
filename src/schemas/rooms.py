@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 
+from schemas.facilities import Facility
+
 
 class RoomAddRequest(BaseModel):
     title: str
@@ -19,6 +21,11 @@ class RoomAdd(BaseModel):
 
 class Room(RoomAdd):
     id: int
+
+class RoomsWithRels(Room):
+    facilities: list[Facility]
+    
+
 
 class RoomUpdateRequest(BaseModel):
     title: str | None = None

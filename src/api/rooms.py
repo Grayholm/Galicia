@@ -11,8 +11,8 @@ async def get_rooms_by_filter(
     hotel_id: int, 
     db: DBDep, 
     filter: RoomsFilterDep, 
-    date_from: date = Query(), 
-    date_to: date = Query()):
+    date_from: date = Query(example='2025-09-15'), 
+    date_to: date = Query(example='2025-09-20')):
     result = await db.rooms.get_rooms(hotel_id, filter, date_from, date_to)
 
     return {"Комнаты": result}
@@ -72,8 +72,8 @@ async def delete_room(hotel_id: int, room_id: int, db: DBDep):
 async def update_room(hotel_id: int, 
                       db: DBDep, 
                       room_id: int, 
-                      f_ids_to_add: list[int] = Body(None), 
-                      f_ids_to_dlt: list[int] = Body(None), 
+                      f_ids_to_add: list[int] = Body([]), 
+                      f_ids_to_dlt: list[int] = Body([]), 
                       data: RoomUpdateRequest = Body()
 ):
     if data is None and not f_ids_to_add and not f_ids_to_dlt:
@@ -119,9 +119,9 @@ async def update_room(hotel_id: int,
 async def edit_hotel(hotel_id: int, 
                      db: DBDep, 
                      room_id: int, 
-                     f_ids_to_add: list[int] | None = Body(None), 
-                     f_ids_to_dlt: list[int] | None = Body(None),
-                     data: RoomUpdateRequest | None = Body(None)
+                     f_ids_to_add: list[int] | None = Body([]), 
+                     f_ids_to_dlt: list[int] | None = Body([]),
+                     data: RoomUpdateRequest | None = Body()
 ):
     if data is None or all(value is None for value in data.model_dump().values()) and not f_ids_to_add and not f_ids_to_dlt:
         raise HTTPException(

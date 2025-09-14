@@ -3,16 +3,20 @@ from models.facilities import RoomsFacilitiesModel
 from repositories.utils import get_rooms_ids_for_booking
 from src.models.rooms import RoomsModel
 from src.repositories.base import BaseRepository
-from src.schemas.rooms import Room
-from pydantic import BaseModel
-
+from src.schemas.rooms import Room, RoomsWithRels
+from sqlalchemy.orm import selectinload, joinedload
 
 class RoomsRepository(BaseRepository):
     model = RoomsModel
     schema = Room
 
     async def get_rooms(self, hotel_id, filters, date_from, date_to):
-        query = get_rooms_ids_for_booking(date_from, date_to, hotel_id)
+        rooms_ids_to_get = get_rooms_ids_for_booking(date_from, date_to, hotel_id)
+
+        query = (
+            select(self.model)
+            .where(self.model.id.in_(rooms_ids_to_get))
+        )
 
         if filters.title:
             query = query.where(self.model.title.ilike(f"%{filters.title}%"))
@@ -21,9 +25,11 @@ class RoomsRepository(BaseRepository):
         if filters.price_max is not None:
             query = query.where(self.model.price <= filters.price_max)
 
+        query = query.options(joinedload(self.model.facilities))
+
         result = await self.session.execute(query)
-        rooms = result.scalars().all()
-        return [self.schema.model_validate(room, from_attributes=True) for room in rooms]
+        rooms = result.unique().scalars().all()
+        return [RoomsWithRels.model_validate(room, from_attributes=True) for room in rooms]
     
 
     async def update(self, data, f_ids_add, f_ids_dlt, **filters):
