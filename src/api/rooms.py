@@ -69,11 +69,20 @@ async def delete_room(hotel_id: int, room_id: int, db: DBDep):
 
 
 @router.put("/{hotel_id}/rooms/{room_id}", summary="Полное обновление данных", description="Тут мы полностью обновляем данные, каждый параметр")
-async def update_room(data: RoomUpdateRequest, hotel_id: int, room_id: int, db: DBDep):
-    if data is None:
-        return {"message": "Отсутствуют данные для обновления"}
+async def update_room(hotel_id: int, 
+                      db: DBDep, 
+                      room_id: int, 
+                      f_ids_to_add: list[int] = Body(None), 
+                      f_ids_to_dlt: list[int] = Body(None), 
+                      data: RoomUpdateRequest = Body()
+):
+    if data is None and not f_ids_to_add and not f_ids_to_dlt:
+        raise HTTPException(
+            status_code=400,
+            detail="Отсутствуют данные для обновления"
+        )
     
-    if any(value is None for value in data.model_dump().values()):
+    if any(value is None for value in data.model_dump().values()) or not f_ids_to_add or not f_ids_to_dlt :
         raise HTTPException(
             status_code=400,
             detail="Некоторые параметры пусты"
@@ -82,10 +91,22 @@ async def update_room(data: RoomUpdateRequest, hotel_id: int, room_id: int, db: 
     room_data = RoomUpdate(hotel_id=hotel_id, **data.model_dump())
 
     try:
-        updated_room = await db.rooms.update(room_data, id=room_id, hotel_id=hotel_id)
+        updated_room = await db.rooms.update(
+                data=room_data, 
+                f_ids_add=f_ids_to_add,
+                f_ids_dlt=f_ids_to_dlt,
+                id=room_id, 
+                hotel_id=hotel_id
+        )
         await db.commit()
     except Exception as e:
         raise HTTPException(status_code=404, detail="Не найдена комната с заданными параметрами(Неправильное ID отеля и/или номера)")
+
+    # try:
+    #     updated_room = await db.rooms.update(room_data, id=room_id, hotel_id=hotel_id)
+    #     await db.commit()
+    # except Exception as e:
+    #     raise HTTPException(status_code=404, detail="Не найдена комната с заданными параметрами(Неправильное ID отеля и/или номера)")
     
     if updated_room is not None:
         return {"message": f"Информация обновлена = {updated_room}"}
@@ -95,8 +116,14 @@ async def update_room(data: RoomUpdateRequest, hotel_id: int, room_id: int, db: 
 
 
 @router.patch("/{hotel_id}/rooms/{room_id}", summary="Частичное обновление данных об отеле", description="Тут мы частично обновляем данные")
-async def edit_hotel(hotel_id: int, db: DBDep, room_id: int, data: RoomUpdateRequest | None = Body(None)):
-    if data is None or all(value is None for value in data.model_dump().values()):
+async def edit_hotel(hotel_id: int, 
+                     db: DBDep, 
+                     room_id: int, 
+                     f_ids_to_add: list[int] | None = Body(None), 
+                     f_ids_to_dlt: list[int] | None = Body(None),
+                     data: RoomUpdateRequest | None = Body(None)
+):
+    if data is None or all(value is None for value in data.model_dump().values()) and not f_ids_to_add and not f_ids_to_dlt:
         raise HTTPException(
             status_code=400,
             detail="Отсутствуют данные для обновления"
@@ -105,7 +132,13 @@ async def edit_hotel(hotel_id: int, db: DBDep, room_id: int, data: RoomUpdateReq
     room_data = RoomUpdate(hotel_id=hotel_id, **data.model_dump(exclude_unset=True))
 
     try:
-        edited_room = await db.rooms.update(room_data, id=room_id, hotel_id=hotel_id)
+        edited_room = await db.rooms.update(
+                data=room_data, 
+                f_ids_add=f_ids_to_add,
+                f_ids_dlt=f_ids_to_dlt,
+                id=room_id, 
+                hotel_id=hotel_id
+        )
         await db.commit()
     except Exception as e:
         raise HTTPException(status_code=404, detail="Не найдена комната с заданными параметрами(Неправильное ID отеля и/или номера)")
