@@ -31,6 +31,15 @@ class RoomsRepository(BaseRepository):
         rooms = result.unique().scalars().all()
         return [RoomsWithRels.model_validate(room, from_attributes=True) for room in rooms]
     
+    async def get_one_or_none(self, **filter):
+        query = select(self.model).filter_by(**filter).options(joinedload(self.model.facilities))
+        result = await self.session.execute(query)
+        sth = result.unique().scalar_one_or_none()
+    
+        if sth:
+            return RoomsWithRels.model_validate(sth, from_attributes=True)
+    
+        return None
 
     async def update(self, data, f_ids_add, f_ids_dlt, **filters):
         update_data = data.model_dump(exclude_unset=True)
@@ -70,6 +79,4 @@ class RoomsRepository(BaseRepository):
                 await self.session.execute(query)
 
         return edited
-
-
 
