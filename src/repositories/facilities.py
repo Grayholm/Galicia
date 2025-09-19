@@ -1,7 +1,7 @@
 from repositories.mappers.mappers import FacilityDataMapper
 from src.models.facilities import RoomsFacilitiesModel, FacilitiesModel
 from src.repositories.base import BaseRepository
-from src.schemas.facilities import Facility, RoomFacility
+from src.schemas.facilities import RoomFacility
 
 
 class FacilitiesRepository(BaseRepository):

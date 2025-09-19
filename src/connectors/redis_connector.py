@@ -1,3 +1,4 @@
+import json
 import redis.asyncio as redis
 
 class RedisManager:
@@ -11,15 +12,15 @@ class RedisManager:
         self.redis = await redis.Redis(host=self.host, port=self.port)
 
 
-    async def set(self, key: str, value: str, expire: int = None):
-        if expire:
-            await self.redis.set(key, value, ex=expire)
-        else:
-            await self.redis.set(key, value)
+    async def set(self, key: str, value: str, expire: int = 3600):
+        value_schemas: list[dict] = [f.model_dump() for f in value]
+        value_json = json.dumps(value_schemas)
+        await self.redis.set(key, value=value_json, ex=expire)
 
 
     async def get(self, key: str):
-        return await self.redis.get(key)
+        data = await self.redis.get(key)
+        return json.loads(data) if data else None
 
 
     async def delete(self, key: str):
