@@ -3,12 +3,14 @@ from src.models.facilities import FacilitiesModel
 from src.models.hotels import HotelsModel
 from src.models.rooms import RoomsModel
 from src.models.users import UsersModel
+from src.models.images import HotelsImagesModel, ImagesModel
 from repositories.mappers.base import DataMapper
 from schemas.bookings import Booking
 from schemas.facilities import Facility
 from schemas.hotels import Hotel
 from schemas.rooms import Room, RoomsWithRels
 from schemas.users import User, UserWithHashedPassword
+from src.schemas.images import HotelImage, Image
 
 
 class HotelDataMapper(DataMapper):
@@ -38,3 +40,11 @@ class UserWithHashedPasswordDataMapper(DataMapper):
 class FacilityDataMapper(DataMapper):
     db_model = FacilitiesModel
     schema = Facility
+
+class ImageDataMapper(DataMapper):
+    db_model = ImagesModel
+    schema = Image
+
+class HotelsImageDataMapper(DataMapper):
+    db_model = HotelsImagesModel
+    schema = HotelImage

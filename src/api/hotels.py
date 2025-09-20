@@ -1,10 +1,7 @@
 from datetime import date
-from repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hoteladd, UpdateHotel
 from fastapi import Query, APIRouter, Body, HTTPException
 from src.api.dependencies import DBDep, PaginationDep
-from src.db import async_session_maker
-# from src.db import engine
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -27,15 +24,11 @@ async def get_hotels(
         date_from, 
         date_to
         )
-    
-    # return await db.hotels.get_hotels(title, 
-    #                                 location, 
-    #                                 pagination.per_page, 
-    #                                 pagination.per_page * (pagination.page-1))
+
     
 @router.get("/{hotel_id}")
 async def get_one_hotel_by_id(hotel_id: int, db: DBDep):
-    result = await db.hotels.get_one_or_none(id=hotel_id)
+    result = await db.hotels.get_one_hotel_by_id(hotel_id)
     if result is not None:
         return result
         

@@ -22,7 +22,7 @@ class BaseRepository:
     async def get_one_or_none(self, **filter):
         query = select(self.model).filter_by(**filter)
         result = await self.session.execute(query)
-        sth = result.scalar_one_or_none()
+        return result.scalar_one_or_none()
     
         if sth:
             return self.mapper.map_to_domain_entity(sth)
