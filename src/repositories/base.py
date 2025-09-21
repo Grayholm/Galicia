@@ -2,7 +2,7 @@ from sqlalchemy import select, delete, update, insert
 from pydantic import BaseModel
 from fastapi import HTTPException
 
-from repositories.mappers.base import DataMapper
+from src.repositories.mappers.base import DataMapper
 
 class BaseRepository:
     model = None

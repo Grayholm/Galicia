@@ -1,17 +1,18 @@
-from repositories.bookings import BookingsRepository
-from repositories.hotels import HotelsRepository
-from repositories.rooms import RoomsRepository
-from repositories.users import UsersRepository
-from repositories.facilities import FacilitiesRepository, RoomsFacilitiesRepository
-from repositories.images import ImagesRepository, HotelsImagesRepository
+from src.repositories.bookings import BookingsRepository
+from src.repositories.hotels import HotelsRepository
+from src.repositories.rooms import RoomsRepository
+from src.repositories.users import UsersRepository
+from src.repositories.facilities import FacilitiesRepository, RoomsFacilitiesRepository
+from src.repositories.images import ImagesRepository, HotelsImagesRepository
 
 
 class DBManager:
     def __init__(self, session_factory):
         self.session_factory = session_factory
+        self.session = None
 
     async def __aenter__(self):
-        self.session = self.session_factory
+        self.session = self.session_factory()
 
         self.hotels = HotelsRepository(self.session)
         self.rooms = RoomsRepository(self.session)

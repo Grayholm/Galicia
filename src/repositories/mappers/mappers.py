@@ -4,12 +4,12 @@ from src.models.hotels import HotelsModel
 from src.models.rooms import RoomsModel
 from src.models.users import UsersModel
 from src.models.images import HotelsImagesModel, ImagesModel
-from repositories.mappers.base import DataMapper
-from schemas.bookings import Booking
-from schemas.facilities import Facility
-from schemas.hotels import Hotel
-from schemas.rooms import Room, RoomsWithRels
-from schemas.users import User, UserWithHashedPassword
+from src.repositories.mappers.base import DataMapper
+from src.schemas.bookings import Booking
+from src.schemas.facilities import Facility
+from src.schemas.hotels import Hotel
+from src.schemas.rooms import Room, RoomsWithRels
+from src.schemas.users import User, UserWithHashedPassword
 from src.schemas.images import HotelImage, Image
 
 

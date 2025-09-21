@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 from sqlalchemy import select
 
-from repositories.mappers.mappers import HotelDataMapper, ImageDataMapper
+from src.repositories.mappers.mappers import HotelDataMapper, ImageDataMapper
 from src.models.rooms import RoomsModel
-from repositories.utils import get_rooms_ids_for_booking
+from src.repositories.utils import get_rooms_ids_for_booking
 from src.models.hotels import HotelsModel
 from src.repositories.base import BaseRepository
 from sqlalchemy.orm import joinedload, selectinload

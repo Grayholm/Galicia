@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from repositories.mappers.mappers import UserWithHashedPasswordDataMapper
+from src.repositories.mappers.mappers import UserWithHashedPasswordDataMapper
 from src.repositories.base import BaseRepository
 from src.models.users import UsersModel
 from pydantic import EmailStr
