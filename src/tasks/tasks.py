@@ -1,13 +1,6 @@
-from pathlib import Path
-from time import sleep
 from src.tasks.celery_app import celery_instance
 from PIL import Image
 import os
-
-@celery_instance.task(name="test_task")
-def test_task():
-    sleep(5)
-    print("Test task completed")
 
 
 @celery_instance.task(name="resize_image")

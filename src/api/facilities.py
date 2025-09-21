@@ -2,20 +2,17 @@ from fastapi import APIRouter
 
 from fastapi_cache.decorator import cache
 
-from api.dependencies import DBDep
-from schemas.facilities import FacilityAdd
-from tasks.tasks import test_task
+from src.api.dependencies import DBDep
+from src.schemas.facilities import FacilityAdd
 
 router = APIRouter(prefix="/facilities", tags=["Удобства"])
 
 @router.post('')
-async def add_facility(fasility: FacilityAdd, db: DBDep):
-    added_fasility = await db.facilities.add(fasility)
+async def add_facility(facility: FacilityAdd, db: DBDep):
+    added_facility = await db.facilities.add(facility)
     await db.commit()
 
-    test_task.delay()
-
-    return {"status": "Ok", "data": added_fasility}
+    return {"status": "Ok", "data": added_facility}
 
 
 @router.get('')
