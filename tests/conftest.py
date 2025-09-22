@@ -9,7 +9,7 @@ from src.models import *
 
 import json
 
-from src.schemas.hotels import Hoteladd
+from src.schemas.hotels import HotelAdd
 from src.schemas.rooms import RoomAdd
 from src.utils.db_manager import DBManager
 
@@ -21,15 +21,10 @@ async def add_hotels_from_json(file_path: str, db):
     with open(file_path, 'r', encoding='utf-8') as f:
         hotels_data = json.load(f)
 
-    for hotel_info in hotels_data:
-        hotel = Hoteladd(
-            title=hotel_info['title'],
-            location=hotel_info['location']
-        )
-        await db.hotels.add(hotel)
+    hotels = [HotelAdd.model_validate(hotel) for hotel in hotels_data]
+    await db.hotels.add_bulk(hotels)
 
     await db.commit()
-
 
 async def add_rooms_from_json(file_path: str, db):
     """
@@ -38,15 +33,8 @@ async def add_rooms_from_json(file_path: str, db):
     with open(file_path, 'r', encoding='utf-8') as f:
         rooms_data = json.load(f)
 
-    for room_info in rooms_data:
-        room = RoomAdd(
-            hotel_id=room_info['hotel_id'],
-            title=room_info['title'],
-            description=room_info['description'],
-            price=room_info['price'],
-            quantity=room_info['quantity'],
-        )
-        await db.rooms.add(room)
+    rooms = [RoomAdd.model_validate(room) for room in rooms_data]
+    await db.rooms.add_bulk(rooms)
 
     await db.commit()
 
@@ -65,7 +53,6 @@ async def setup_database(check_test_mode):
     async with DBManager(session_factory=async_session_maker_null_pool()) as db:
         await add_hotels_from_json('tests/mock_hotels.json', db)
         await add_rooms_from_json('tests/mock_rooms.json', db)
-        await db.commit()
 
 @pytest.fixture(scope='session', autouse=True)
 async def register_user(setup_database):

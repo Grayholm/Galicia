@@ -1,5 +1,5 @@
 from datetime import date
-from src.schemas.hotels import Hoteladd, UpdateHotel
+from src.schemas.hotels import HotelAdd, UpdateHotel
 from fastapi import Query, APIRouter, Body, HTTPException
 from src.api.dependencies import DBDep, PaginationDep
 
@@ -36,7 +36,7 @@ async def get_one_hotel_by_id(hotel_id: int, db: DBDep):
 
 
 @router.post("")
-async def create_hotel(db: DBDep, hotel_data: Hoteladd = Body(openapi_examples={
+async def create_hotel(db: DBDep, hotel_data: HotelAdd = Body(openapi_examples={
     '1': {
         "summary": 'Отель в Дубае',
         "value": {

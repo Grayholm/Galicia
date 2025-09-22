@@ -3,15 +3,15 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from src.schemas.images import Image
 
-class Hoteladd(BaseModel):
+class HotelAdd(BaseModel):
     title: str
     location: str
 
-class HotelWithImages(Hoteladd):
+class HotelWithImages(HotelAdd):
     id: int
     images: List[Image]
 
-class Hotel(Hoteladd):
+class Hotel(HotelAdd):
     id: int
 
     model_config = ConfigDict(from_attributes=True)

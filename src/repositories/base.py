@@ -24,10 +24,10 @@ class BaseRepository:
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
     
-        if sth:
-            return self.mapper.map_to_domain_entity(sth)
-    
-        return None
+        # if sth:
+        #     return self.mapper.map_to_domain_entity(sth)
+        #
+        # return None
     
     
     async def add(self, data: BaseModel):
