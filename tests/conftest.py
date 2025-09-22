@@ -14,6 +14,12 @@ from src.schemas.rooms import RoomAdd
 from src.utils.db_manager import DBManager
 
 
+
+@pytest.fixture()
+async def db():
+    async with DBManager(session_factory=async_session_maker_null_pool()) as db:
+        yield db
+
 async def add_hotels_from_json(file_path: str, db):
     """
     Читает JSON файл с отелями и добавляет их в БД
@@ -50,25 +56,29 @@ async def setup_database(check_test_mode):
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
-    async with DBManager(session_factory=async_session_maker_null_pool()) as db:
-        await add_hotels_from_json('tests/mock_hotels.json', db)
-        await add_rooms_from_json('tests/mock_rooms.json', db)
+
+    async with DBManager(session_factory=async_session_maker_null_pool()) as db_:
+        await add_hotels_from_json('tests/mock_hotels.json', db_)
+        await add_rooms_from_json('tests/mock_rooms.json', db_)
+
+@pytest.fixture(scope='session')
+async def ac():
+    async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        yield ac
 
 @pytest.fixture(scope='session', autouse=True)
-async def register_user(setup_database):
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
-        await ac.post(
-            "/auth/register",
-            json={
-                "first_name": "Alex",
-                "last_name": "Smith",
-                "nickname": "Gordon",
-                "birth_day": "1990-01-01",
-                "email": "alexsmith1990@gmail.com",
-                "password": "smith0101",
-            }
-        )
+async def register_user(setup_database, ac):
+    await ac.post(
+        "/auth/register",
+        json={
+            "first_name": "Alex",
+            "last_name": "Smith",
+            "nickname": "Gordon",
+            "birth_day": "1990-01-01",
+            "email": "alexsmith1990@gmail.com",
+            "password": "smith0101",
+        }
+    )
 
-    print('PRIVETTTT')
