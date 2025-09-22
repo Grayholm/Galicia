@@ -1,7 +1,8 @@
 import pytest
 
+from src.api.dependencies import get_db
 from src.config import settings
-from src.db import Base, engine_null_pool, async_session_maker_null_pool
+from src.db import Base, engine, async_session_maker
 from httpx import ASGITransport, AsyncClient
 
 from src.main import app
@@ -17,7 +18,7 @@ from src.utils.db_manager import DBManager
 
 @pytest.fixture()
 async def db():
-    async with DBManager(session_factory=async_session_maker_null_pool()) as db:
+    async with DBManager(session_factory=async_session_maker()) as db:
         yield db
 
 async def add_hotels_from_json(file_path: str, db):
@@ -52,12 +53,12 @@ def check_test_mode():
 @pytest.fixture(scope='session', autouse=True)
 async def setup_database(check_test_mode):
 
-    async with engine_null_pool.begin() as conn:
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
 
-    async with DBManager(session_factory=async_session_maker_null_pool()) as db_:
+    async with DBManager(session_factory=async_session_maker()) as db_:
         await add_hotels_from_json('tests/mock_hotels.json', db_)
         await add_rooms_from_json('tests/mock_rooms.json', db_)
 

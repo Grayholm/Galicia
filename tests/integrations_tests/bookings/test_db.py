@@ -27,6 +27,17 @@ async def test_booking_crud(db):
     assert added_booking.price == booking_data.price
 
     # Обновление бронирования
+    update_booking_data = BookingAdd(
+        date_from=date(year=2025, month=10, day=15),
+        date_to=date(year=2025, month=10, day=31),
+        room_id=room_id,
+        user_id=user_id,
+        price=1500,
+    )
+    updated_booking = await db.bookings.update(update_booking_data, id=new_booking.id)
+    await db.commit()
+    assert updated_booking.id
+    assert updated_booking.price == 1500
 
     # Удаление бронирования
     await db.bookings.delete(id=new_booking.id)
