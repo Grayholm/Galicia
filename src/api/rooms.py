@@ -11,8 +11,9 @@ async def get_rooms_by_filter(
     hotel_id: int, 
     db: DBDep, 
     filter: RoomsFilterDep, 
-    date_from: date = Query(example='2025-09-15'), 
-    date_to: date = Query(example='2025-09-20')):
+    date_from: date = Query(examples=['2025-09-15']),
+    date_to: date = Query(examples=['2025-09-20'])
+):
     result = await db.rooms.get_rooms(hotel_id, filter, date_from, date_to)
 
     return {"Комнаты": result}
