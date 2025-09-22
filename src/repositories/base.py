@@ -22,12 +22,12 @@ class BaseRepository:
     async def get_one_or_none(self, **filter):
         query = select(self.model).filter_by(**filter)
         result = await self.session.execute(query)
-        return result.scalar_one_or_none()
+        sth = result.scalar_one_or_none()
     
-        # if sth:
-        #     return self.mapper.map_to_domain_entity(sth)
-        #
-        # return None
+        if sth:
+            return self.mapper.map_to_domain_entity(sth)
+
+        return None
     
     
     async def add(self, data: BaseModel):
@@ -62,4 +62,4 @@ class BaseRepository:
         if result.rowcount == 0:
             raise HTTPException(status_code=404, detail="Object is not found")
         
-        return {"message": "OK"}
+        return True
