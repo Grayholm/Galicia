@@ -98,17 +98,5 @@ async def authenticated_ac(register_user, ac):
             "password": "smith0101",
         }
     )
-    async with DBManager(session_factory=async_session_maker()) as db_:
-        user = db_.users.get_one_or_none(email="alexsmith1990@gmail.com")
-
-    assert response.status_code == 200
-    response_data = response.json()
-    token = response_data.get('access_token')
-
-    user_id = get_current_user_id(token)
-
-    assert token
-    assert isinstance(token, str)
-
-    payload = AuthService().decode_token(token)
-    assert payload['user_id'] == user_id
+    assert ac.cookies['access_token'] == response.json()['access_token']
+    yield ac
