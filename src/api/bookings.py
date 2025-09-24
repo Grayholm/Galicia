@@ -35,34 +35,7 @@ async def add_booking(
     db: DBDep, 
     data: BookingAddRequest
 ):  
-    room_data = await db.rooms.get_one_or_none(id=data.room_id)
-
-    if not room_data:
-        raise HTTPException(status_code=404, detail="Номер не найден")
-
-    available_rooms_query = get_rooms_ids_for_booking(
-        date_from=data.date_from,
-        date_to=data.date_to
-    )
-
-    available_rooms_query = available_rooms_query.filter(
-        available_rooms_query.selected_columns.room_id == data.room_id
-    )
-
-    available_room = await db.session.execute(available_rooms_query)
-    available_room = available_room.scalar_one_or_none()
-
-    if not available_room:
-        raise HTTPException(
-            status_code=400,
-            detail="На выбранные даты все номера этого типа заняты"
-        )
-    
-    booking_data = BookingAdd(user_id=user_id, price=room_data.price, **data.model_dump())
-    result = await db.bookings.add(booking_data)
-    await db.commit()
-
-    return {"status": "OK", "data": result}
+    return await db.bookings.add_booking(data, user_id, db)
 
 
 @router.delete("{booking_id}")
