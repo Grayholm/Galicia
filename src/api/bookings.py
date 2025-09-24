@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 
-from api.dependencies import DBDep
-from schemas.bookings import BookingAdd, BookingAddRequest
-from utils.auth_utils import UserIdDep
+from src.api.dependencies import DBDep
+from src.schemas.bookings import BookingAdd, BookingAddRequest
+from src.utils.auth_utils import UserIdDep
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
@@ -43,7 +43,7 @@ async def add_booking(
     result = await db.bookings.add(booking_data)
     await db.commit()
 
-    return {"status": "Ok", "data": result}
+    return {"status": "OK", "data": result}
 
 
 @router.delete("{booking_id}")
