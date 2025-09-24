@@ -50,6 +50,5 @@ class BookingsRepository(BaseRepository):
 
         booking_data = BookingAdd(user_id=user_id, price=room_data.price, **data.model_dump())
         result = await db.bookings.add(booking_data)
-        await db.commit()
 
-        return {"status": "OK", "data": result}
+        return result

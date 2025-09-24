@@ -32,8 +32,6 @@ class RoomUpdateRequest(BaseModel):
     description: str | None = None
     price: int | None = None
     quantity: int | None = None
-    # facility_ids_to_add: int | None = None
-    # facility_ids_to_dlt: int | None = None
 
 
 class RoomUpdate(BaseModel):
