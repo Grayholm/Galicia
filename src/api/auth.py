@@ -41,7 +41,7 @@ async def login_user(
         raise HTTPException(status_code=401, detail="Введен неверный пароль")
     access_token = AuthService().create_access_token({"user_id": user.id})
     response.set_cookie("access_token", access_token)
-    return {"access_token": access_token}
+    return {'access_token': access_token}
     
     
 @router.get("/me")

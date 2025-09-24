@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 import jwt
 from passlib.context import CryptContext
-from config import settings
+from src.config import settings
 
 
 class AuthService:
