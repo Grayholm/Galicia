@@ -43,26 +43,29 @@ class RoomsRepository(BaseRepository):
 
     async def update(self, data, f_ids_add, f_ids_dlt, **filters):
         update_data = data.model_dump(exclude_unset=True)
+        room_id = filters.get('id')
         
         update_stmt = update(self.model).filter_by(**filters).values(**update_data).returning(self.model)
         result = await self.session.execute(update_stmt)
 
-        edited = self.schema.model_validate(result.scalar_one_or_none(), from_attributes=True)
+        edited = self.mapper.map_to_domain_entity(result.scalar_one_or_none())
         if edited is None:
             return None
 
+
         if f_ids_dlt:
-            room_id = filters.get('id')
             query = delete(RoomsFacilitiesModel).where(
                 RoomsFacilitiesModel.room_id == room_id,
                 RoomsFacilitiesModel.facility_id.in_(f_ids_dlt)
             )
             await self.session.execute(query)
 
-        if not 0 in f_ids_add:
+        if f_ids_add:
+            valid_ids = [f_id for f_id in f_ids_add if f_id > 0]
+
             existing_query = select(RoomsFacilitiesModel.facility_id).where(
                 RoomsFacilitiesModel.room_id == room_id,
-                RoomsFacilitiesModel.facility_id.in_(f_ids_add)
+                RoomsFacilitiesModel.facility_id.in_(valid_ids)
             )
             existing_result = await self.session.execute(existing_query)
             existing_ids = {row[0] for row in existing_result.all()}

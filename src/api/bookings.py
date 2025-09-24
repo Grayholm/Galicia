@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from src.api.dependencies import DBDep
+from src.repositories.utils import get_rooms_ids_for_booking
 from src.schemas.bookings import BookingAdd, BookingAddRequest
 from src.utils.auth_utils import UserIdDep
 
@@ -38,6 +39,24 @@ async def add_booking(
 
     if not room_data:
         raise HTTPException(status_code=404, detail="Номер не найден")
+
+    available_rooms_query = get_rooms_ids_for_booking(
+        date_from=data.date_from,
+        date_to=data.date_to
+    )
+
+    available_rooms_query = available_rooms_query.filter(
+        available_rooms_query.selected_columns.room_id == data.room_id
+    )
+
+    available_room = await db.session.execute(available_rooms_query)
+    available_room = available_room.scalar_one_or_none()
+
+    if not available_room:
+        raise HTTPException(
+            status_code=400,
+            detail="На выбранные даты все номера этого типа заняты"
+        )
     
     booking_data = BookingAdd(user_id=user_id, price=room_data.price, **data.model_dump())
     result = await db.bookings.add(booking_data)

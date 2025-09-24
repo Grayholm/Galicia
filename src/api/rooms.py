@@ -117,20 +117,21 @@ async def update_room(hotel_id: int,
 
 
 @router.patch("/{hotel_id}/rooms/{room_id}", summary="Частичное обновление данных об отеле", description="Тут мы частично обновляем данные")
-async def edit_hotel(hotel_id: int, 
-                     db: DBDep, 
+async def edit_hotel(hotel_id: int,
+                     db: DBDep,
                      room_id: int, 
                      f_ids_to_add: list[int] | None = Body([]), 
                      f_ids_to_dlt: list[int] | None = Body([]),
                      data: RoomUpdateRequest | None = Body()
 ):
-    if data is None or all(value is None for value in data.model_dump().values()) and not f_ids_to_add and not f_ids_to_dlt:
+    if (data is None or all(value is None for value in data.model_dump().values())) and not f_ids_to_add and not f_ids_to_dlt:
         raise HTTPException(
             status_code=400,
             detail="Отсутствуют данные для обновления"
         )
-    
-    room_data = RoomUpdate(hotel_id=hotel_id, **data.model_dump(exclude_unset=True))
+
+    update_dict = data.model_dump(exclude_unset=True) if data else {}
+    room_data = RoomUpdate(hotel_id=hotel_id, **update_dict)
 
     try:
         edited_room = await db.rooms.update(
