@@ -1,11 +1,8 @@
 from unittest import mock
 
-from src.services.auth import AuthService
-from src.utils.auth_utils import get_current_user_id
 
 mock.patch('fastapi_cache.decorator.cache', lambda *args, **kwargs: lambda f: f).start()
 
-from src.api.dependencies import get_db
 from src.config import settings
 from src.db import Base, engine, async_session_maker
 from httpx import ASGITransport, AsyncClient
