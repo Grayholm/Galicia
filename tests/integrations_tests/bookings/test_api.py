@@ -36,32 +36,25 @@ async def test_add_booking(
         assert 'data' in res
 
 
-@pytest.fixture()
-async def delete_all_bookings(db, authenticated_ac):
-    bookings = await db.bookings.get_all()
-    for booking in bookings:
-        await authenticated_ac.delete(f'/bookings/{booking.id}')
+@pytest.fixture(scope='module')
+async def delete_all_bookings(db_module):
+    await db_module.bookings.delete()
+    await db_module.commit()
 
-@pytest.mark.parametrize('room_id, date_from, date_to, status_code, quantity', [
-    (1, '2025-09-25', '2025-09-29', 200, 1),
-    (1, '2025-09-25', '2025-09-29', 200, 2),
-    (1, '2025-09-25', '2025-09-29', 200, 3),
-    (1, '2025-09-25', '2025-09-29', 200, 4),
-    (1, '2025-09-25', '2025-09-29', 200, 5),
+@pytest.mark.parametrize('room_id, date_from, date_to, quantity', [
+    (1, '2025-09-25', '2025-09-29', 1),
+    (1, '2025-09-25', '2025-09-29', 2),
+    (1, '2025-09-25', '2025-09-29', 3),
 ])
 async def test_add_and_get_my_bookings(
-        delete_all_bookings,
         room_id,
         date_from,
         date_to,
-        status_code,
         quantity,
+        delete_all_bookings,
         db,
         authenticated_ac,
 ):
-
-    user = await db.users.get_one_or_none(email="alexsmith1990@gmail.com")
-    user_id = user.id
 
     response = await authenticated_ac.post(
         '/bookings',
@@ -72,9 +65,9 @@ async def test_add_and_get_my_bookings(
         }
     )
 
-    assert response.status_code == status_code
+    assert response.status_code == 200
 
-    bookings_response = await authenticated_ac.get(f'/bookings/{user_id}')
+    bookings_response = await authenticated_ac.get(f'/bookings/me')
     assert bookings_response.status_code == 200
 
     bookings = bookings_response.json()

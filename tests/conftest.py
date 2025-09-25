@@ -18,11 +18,21 @@ from src.schemas.rooms import RoomAdd
 from src.utils.db_manager import DBManager
 
 
+async def get_db_null_pool():
+    async with DBManager(session_factory=async_session_maker) as db:
+        yield db
+
 
 @pytest.fixture(scope='function')
 async def db():
     async with DBManager(session_factory=async_session_maker()) as db:
         yield db
+
+@pytest.fixture(scope='module')
+async def db_module():
+    async with DBManager(session_factory=async_session_maker()) as db:
+        yield db
+
 
 async def add_hotels_from_json(file_path: str, db):
     """

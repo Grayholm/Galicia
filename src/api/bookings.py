@@ -6,7 +6,7 @@ from src.utils.auth_utils import UserIdDep
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
-@router.get("{user_id}")
+@router.get("/me")
 async def get_my_bookings(
     user_id: UserIdDep,
     db: DBDep,
