@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, Request
 
-from services.auth import AuthService
+from src.services.auth.auth import AuthService
 
 
 def get_token(request: Request) -> str:

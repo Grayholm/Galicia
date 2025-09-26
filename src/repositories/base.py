@@ -32,7 +32,6 @@ class BaseRepository:
     
     async def add(self, data: BaseModel):
         add_stmt = insert(self.model).values(**data.model_dump(exclude_unset=True)).returning(self.model)
-        # print(add_hotel_stmt.compile(engine, compile_kwargs={'literal_binds': True}))
         result = await self.session.execute(add_stmt)
 
         created = self.mapper.map_to_domain_entity(result.scalar_one_or_none())
