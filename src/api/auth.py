@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, HTTPException
 
 from src.api.dependencies import DBDep
+from src.exceptions import NicknameIsEmptyException, EmailIsAlreadyRegisteredException, RegisterErrorException
 from src.schemas.users import UserRequestAddRegister, UserLogin
 from src.services.auth import AuthService
 from src.utils.auth_utils import UserIdDep
@@ -11,7 +12,14 @@ router = APIRouter(prefix="/auth", tags=["Аутентификация и авт
 
 @router.post("/register")
 async def register_user(data: UserRequestAddRegister, db: DBDep):
-    user = await AuthService(db).register_user(data)
+    try:
+        user = await AuthService(db).register_user(data)
+    except NicknameIsEmptyException:
+        raise HTTPException(status_code=400, detail="Ник не может быть пустым")
+    except EmailIsAlreadyRegisteredException:
+        raise HTTPException(status_code=409, detail="Email уже используется")
+    except RegisterErrorException:
+        raise HTTPException(status_code=400, detail='Ошибка регистрации')
     return user
 
 

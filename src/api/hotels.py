@@ -1,4 +1,6 @@
 from datetime import date
+
+from src.exceptions import InvalidDateRangeError, HotelNotFoundException
 from src.schemas.hotels import HotelAdd, UpdateHotel
 from fastapi import Query, APIRouter, Body, HTTPException
 from src.api.dependencies import DBDep, PaginationDep
@@ -15,23 +17,32 @@ async def get_hotels(
     date_from: date = Query(examples=["2025-09-15"]),
     date_to: date = Query(examples=["2025-09-20"]),
 ):
-    return await db.hotels.get_hotels_by_time(
-        title,
-        location,
-        pagination.per_page,
-        pagination.per_page * (pagination.page - 1),
-        date_from,
-        date_to,
-    )
+
+    try:
+        result = await db.hotels.get_hotels_by_time(
+            title,
+            location,
+            pagination.per_page,
+            pagination.per_page * (pagination.page - 1),
+            date_from,
+            date_to,
+        )
+    except InvalidDateRangeError:
+        raise HTTPException(status_code=400, detail='Дата заезда позже дата выезда')
+    except HotelNotFoundException:
+        raise HTTPException(status_code=404, detail='Отель не найден')
+
+    return result
 
 
 @router.get("/{hotel_id}")
 async def get_one_hotel_by_id(hotel_id: int, db: DBDep):
-    result = await db.hotels.get_one_hotel_by_id(hotel_id)
-    if result is not None:
-        return result
+    try:
+        result = await db.hotels.get_one_hotel_by_id(hotel_id)
+    except HotelNotFoundException:
+        raise HTTPException(status_code=404, detail='Отель не найден')
 
-    return {"message": f"Отель с ID = {hotel_id} не найден"}
+    return result
 
 
 @router.post("")

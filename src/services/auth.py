@@ -6,6 +6,7 @@ from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from src.config import settings
+from src.exceptions import EmailIsAlreadyRegisteredException, RegisterErrorException, NicknameIsEmptyException
 from src.schemas.users import UserRequestAddRegister, UserAdd, UserLogin
 from src.services.base import BaseService
 
@@ -41,14 +42,12 @@ class AuthService(BaseService):
             raise HTTPException(status_code=401, detail="Ошибка: Неверная подпись(токен)")
 
     async def register_user(self, data: UserRequestAddRegister):
-        if not data.birth_day:
-            raise HTTPException(status_code=400, detail="Дата рождения обязательна")
-
-        if (date.today() - data.birth_day).days < 18 * 365:
-            raise HTTPException(status_code=400, detail="Возраст должен быть 18+")
+        if data.birth_day:
+            if (date.today() - data.birth_day).days < 18 * 365:
+                raise HTTPException(status_code=400, detail="Возраст должен быть 18+")
 
         if not data.nickname.strip():
-            raise HTTPException(status_code=400, detail="Ник не может быть пустым")
+            raise NicknameIsEmptyException
 
         new_user = UserAdd(
             first_name=data.first_name,
@@ -65,8 +64,8 @@ class AuthService(BaseService):
         except IntegrityError as e:
             err = str(e.orig)
             if "email" in err:
-                raise HTTPException(status_code=400, detail="Email уже используется")
-            raise HTTPException(status_code=400, detail="Ошибка при регистрации")
+                raise EmailIsAlreadyRegisteredException
+            raise RegisterErrorException
 
         return new_user
 

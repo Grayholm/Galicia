@@ -1,7 +1,10 @@
 from datetime import date
 from fastapi import APIRouter, HTTPException, Body, Query
-from schemas.facilities import RoomFacilityAdd
+from pydantic import ValidationError
+
+from src.schemas.facilities import RoomFacilityAdd
 from src.api.dependencies import DBDep, RoomsFilterDep
+from src.exceptions import InvalidDateRangeError, RoomNotFoundException, ObjectNotFoundException
 from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomUpdate, RoomUpdateRequest
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
@@ -15,18 +18,24 @@ async def get_rooms_by_filter(
     date_from: date = Query(examples=["2025-09-15"]),
     date_to: date = Query(examples=["2025-09-20"]),
 ):
-    result = await db.rooms.get_rooms(hotel_id, filter, date_from, date_to)
+    try:
+        result = await db.rooms.get_rooms(hotel_id, filter, date_from, date_to)
+    except InvalidDateRangeError:
+        raise HTTPException(status_code=400, detail='Дата заезда позже дата выезда')
+    except RoomNotFoundException:
+        raise HTTPException(status_code=404, detail='Комната не найдена')
 
     return {"Комнаты": result}
 
 
 @router.get("/{hotel_id}/rooms/{room_id}")
 async def get_one_room_by_id(hotel_id: int, room_id: int, db: DBDep):
-    result = await db.rooms.get_one_or_none(id=room_id, hotel_id=hotel_id)
-    if result is not None:
-        return result
+    try:
+        result = await db.rooms.get_one_or_none(id=room_id, hotel_id=hotel_id)
+    except RoomNotFoundException:
+        raise HTTPException(status_code=404, detail='Комната не найдена')
 
-    return {"message": f"Номер с ID = {room_id} не найден"}
+    return result
 
 
 @router.post("/{hotel_id}/rooms")
@@ -48,8 +57,11 @@ async def create_room(
         }
     ),
 ):
-    room_data = RoomAdd(hotel_id=hotel_id, **data.model_dump(exclude_unset=True))
-    room = await db.rooms.add(room_data)
+    try:
+        room_data = RoomAdd(hotel_id=hotel_id, **data.model_dump(exclude_unset=True))
+        room = await db.rooms.add(room_data)
+    except ObjectNotFoundException:
+        raise HTTPException(status_code=404, detail='Отель не найден')
 
     rooms_facilities_data = [
         RoomFacilityAdd(room_id=room.id, facility_id=f_id) for f_id in data.facilities_ids
@@ -62,11 +74,11 @@ async def create_room(
 
 @router.delete("/{hotel_id}/rooms/{room_id}")
 async def delete_room(hotel_id: int, room_id: int, db: DBDep):
-    deleted_room = await db.rooms.delete(hotel_id=hotel_id, id=room_id)
+    try:
+        await db.rooms.delete(hotel_id=hotel_id, id=room_id)
+    except ObjectNotFoundException:
+        raise HTTPException(status_code=404, detail='Комната не найдена')
     await db.commit()
-
-    if deleted_room is None:
-        raise HTTPException(status_code=404, detail=f"Комната с таким ID {room_id} не найдена")
 
     return {"status": f"Комната {room_id} успешно удалена"}
 
@@ -105,22 +117,16 @@ async def update_room(
             hotel_id=hotel_id,
         )
         await db.commit()
-    except Exception:
+    except RoomNotFoundException:
         raise HTTPException(
             status_code=404,
             detail="Не найдена комната с заданными параметрами(Неправильное ID отеля и/или номера)",
         )
-
-    # try:
-    #     updated_room = await db.rooms.update(room_data, id=room_id, hotel_id=hotel_id)
-    #     await db.commit()
-    # except Exception as e:
-    #     raise HTTPException(status_code=404, detail="Не найдена комната с заданными параметрами(Неправильное ID отеля и/или номера)")
+    except ValidationError:
+        raise HTTPException(status_code=404, detail='Отель не найден')
 
     if updated_room is not None:
         return {"message": f"Информация обновлена = {updated_room}"}
-
-    return {"message": "Номер с таким ID не был найден"}
 
 
 @router.patch(
@@ -155,13 +161,13 @@ async def edit_hotel(
             hotel_id=hotel_id,
         )
         await db.commit()
-    except Exception:
+    except RoomNotFoundException:
         raise HTTPException(
             status_code=404,
             detail="Не найдена комната с заданными параметрами(Неправильное ID отеля и/или номера)",
         )
+    except ValidationError:
+        raise HTTPException(status_code=404, detail='Отель не найден')
 
     if edited_room is not None:
         return {"message": f"Информация обновлена = {edited_room}"}
-
-    return {"message": "Номер с таким ID не был найден"}

@@ -1,7 +1,9 @@
 from sqlalchemy import select, delete, update, insert
 from pydantic import BaseModel
 from fastapi import HTTPException
+from sqlalchemy.exc import NoResultFound, IntegrityError
 
+from src.exceptions import ObjectNotFoundException
 from src.repositories.mappers.base import DataMapper
 
 
@@ -34,9 +36,12 @@ class BaseRepository:
         add_stmt = (
             insert(self.model).values(**data.model_dump(exclude_unset=True)).returning(self.model)
         )
-        result = await self.session.execute(add_stmt)
-
-        created = self.mapper.map_to_domain_entity(result.scalar_one_or_none())
+        try:
+            result = await self.session.execute(add_stmt)
+            created_data = result.scalar_one_or_none()
+        except IntegrityError:
+            raise ObjectNotFoundException
+        created = self.mapper.map_to_domain_entity(created_data)
 
         return created
 
@@ -63,6 +68,6 @@ class BaseRepository:
         result = await self.session.execute(delete_stmt)
 
         if result.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Object is not found")
+            raise ObjectNotFoundException
 
         return True

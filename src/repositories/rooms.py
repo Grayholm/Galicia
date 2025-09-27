@@ -1,7 +1,7 @@
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import NoResultFound
 
-from src.exceptions import RoomNotFoundException
+from src.exceptions import RoomNotFoundException, InvalidDateRangeError
 from src.models.facilities import RoomsFacilitiesModel
 from src.repositories.mappers.mappers import RoomDataMapper, RoomWithRelsDataMapper
 from src.repositories.utils import get_rooms_ids_for_booking
@@ -15,6 +15,9 @@ class RoomsRepository(BaseRepository):
     mapper = RoomDataMapper
 
     async def get_rooms(self, hotel_id, filters, date_from, date_to):
+        if date_from > date_to:
+            raise InvalidDateRangeError
+
         rooms_ids_to_get = get_rooms_ids_for_booking(date_from, date_to, hotel_id)
 
         query = select(self.model).where(self.model.id.in_(rooms_ids_to_get))
@@ -27,9 +30,11 @@ class RoomsRepository(BaseRepository):
             query = query.where(self.model.price <= filters.price_max)
 
         query = query.options(joinedload(self.model.facilities))
-
-        result = await self.session.execute(query)
-        rooms = result.unique().scalars().all()
+        try:
+            result = await self.session.execute(query)
+            rooms = result.unique().scalars().all()
+        except NoResultFound:
+            raise RoomNotFoundException
         return [RoomWithRelsDataMapper.map_to_domain_entity(room) for room in rooms]
 
     async def get_one_or_none(self, **filter):
@@ -50,11 +55,11 @@ class RoomsRepository(BaseRepository):
         update_stmt = (
             update(self.model).filter_by(**filters).values(**update_data).returning(self.model)
         )
-        result = await self.session.execute(update_stmt)
-
-        edited = self.mapper.map_to_domain_entity(result.scalar_one_or_none())
-        if edited is None:
-            return None
+        try:
+            result = await self.session.execute(update_stmt)
+            edited = self.mapper.map_to_domain_entity(result.scalar_one_or_none())
+        except NoResultFound:
+            raise RoomNotFoundException
 
         if f_ids_dlt:
             query = delete(RoomsFacilitiesModel).where(
