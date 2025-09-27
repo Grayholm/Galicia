@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 
-from src.exceptions import InvalidDateRangeError, HotelNotFoundException
+from src.exceptions import InvalidDateRangeError, ObjectNotFoundException
 from src.repositories.mappers.mappers import HotelDataMapper, ImageDataMapper
 from src.models.rooms import RoomsModel
 from src.repositories.utils import get_rooms_ids_for_booking
@@ -18,7 +18,7 @@ class HotelsRepository(BaseRepository):
     mapper = HotelDataMapper
 
     async def get_hotels_by_time(self, title, location, limit, offset, date_from, date_to):
-        if date_from > date_to:
+        if date_from >= date_to:
             raise InvalidDateRangeError
 
 
@@ -43,12 +43,12 @@ class HotelsRepository(BaseRepository):
             hotels_data = result.unique().scalars().all()
 
             if not hotels_data:
-                raise HotelNotFoundException("Отели не найдены")
+                raise ObjectNotFoundException("Отели не найдены")
             hotels = [
                 self.mapper.map_to_domain_entity(model) for model in result.unique().scalars().all()
             ]
         except NoResultFound:
-            raise HotelNotFoundException
+            raise ObjectNotFoundException
 
         return hotels
 
@@ -62,7 +62,7 @@ class HotelsRepository(BaseRepository):
             result = await self.session.execute(stmt)
             hotel = result.scalar_one()
         except NoResultFound:
-            raise HotelNotFoundException
+            raise ObjectNotFoundException
 
         return hotel
 

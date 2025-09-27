@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 
 
 class BaseException(Exception):
@@ -11,9 +12,6 @@ class DataIntegrityError(BaseException):
 
 class ObjectNotFoundException(BaseException):
     detail = "Object Not Found"
-
-class RoomNotFoundException(BaseException):
-    detail = "Room not found"
 
 class AvailableRoomNotFoundException(BaseException):
     detail = "Available Room not found"
@@ -30,8 +28,21 @@ class RegisterErrorException(BaseException):
 class InvalidDateRangeError(BaseException):
     detail = "Invalid date range"
 
-class HotelNotFoundException(BaseException):
-    detail = "Hotel not found"
-
 class DataIsEmptyException(BaseException):
     detail = "Data is empty"
+
+
+class BaseHTTPException(HTTPException):
+    status_code = 500
+    detail = None
+
+    def __init__(self):
+        super().__init__(status_code=self.status_code, detail=self.detail)
+
+class HotelNotFoundHTTPException(BaseHTTPException):
+    status_code = 404
+    detail = "Отель не найден"
+
+class RoomNotFoundHTTPException(BaseHTTPException):
+    status_code = 404
+    detail = "Номер не найден"

@@ -1,12 +1,14 @@
 from datetime import datetime, timedelta, timezone, date
 
+from asyncpg import UniqueViolationError
 from fastapi import HTTPException
 import jwt
 from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from src.config import settings
-from src.exceptions import EmailIsAlreadyRegisteredException, RegisterErrorException, NicknameIsEmptyException
+from src.exceptions import EmailIsAlreadyRegisteredException, RegisterErrorException, NicknameIsEmptyException, \
+    ObjectNotFoundException
 from src.schemas.users import UserRequestAddRegister, UserAdd, UserLogin
 from src.services.base import BaseService
 
@@ -61,13 +63,10 @@ class AuthService(BaseService):
         try:
             await self.db.users.add(new_user)
             await self.db.commit()
-        except IntegrityError as e:
-            err = str(e.orig)
-            if "email" in err:
-                raise EmailIsAlreadyRegisteredException
-            raise RegisterErrorException
+        except ObjectNotFoundException as e:
+            raise EmailIsAlreadyRegisteredException
 
-        return new_user
+        return {'message': 'Вы успешно зарегистрировались!'}
 
     async def login_and_get_access_token(self, data: UserLogin):
         try:

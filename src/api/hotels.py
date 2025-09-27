@@ -1,6 +1,7 @@
 from datetime import date
 
-from src.exceptions import InvalidDateRangeError, HotelNotFoundException
+from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, \
+    HotelNotFoundHTTPException
 from src.schemas.hotels import HotelAdd, UpdateHotel
 from fastapi import Query, APIRouter, Body, HTTPException
 from src.api.dependencies import DBDep, PaginationDep
@@ -29,8 +30,8 @@ async def get_hotels(
         )
     except InvalidDateRangeError:
         raise HTTPException(status_code=400, detail='Дата заезда позже дата выезда')
-    except HotelNotFoundException:
-        raise HTTPException(status_code=404, detail='Отель не найден')
+    except ObjectNotFoundException:
+        raise HotelNotFoundHTTPException
 
     return result
 
@@ -39,8 +40,8 @@ async def get_hotels(
 async def get_one_hotel_by_id(hotel_id: int, db: DBDep):
     try:
         result = await db.hotels.get_one_hotel_by_id(hotel_id)
-    except HotelNotFoundException:
-        raise HTTPException(status_code=404, detail='Отель не найден')
+    except ObjectNotFoundException:
+        raise HotelNotFoundHTTPException
 
     return result
 

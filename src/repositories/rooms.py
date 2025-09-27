@@ -1,7 +1,7 @@
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import NoResultFound
 
-from src.exceptions import RoomNotFoundException, InvalidDateRangeError
+from src.exceptions import InvalidDateRangeError, ObjectNotFoundException
 from src.models.facilities import RoomsFacilitiesModel
 from src.repositories.mappers.mappers import RoomDataMapper, RoomWithRelsDataMapper
 from src.repositories.utils import get_rooms_ids_for_booking
@@ -15,7 +15,7 @@ class RoomsRepository(BaseRepository):
     mapper = RoomDataMapper
 
     async def get_rooms(self, hotel_id, filters, date_from, date_to):
-        if date_from > date_to:
+        if date_from >= date_to:
             raise InvalidDateRangeError
 
         rooms_ids_to_get = get_rooms_ids_for_booking(date_from, date_to, hotel_id)
@@ -34,7 +34,7 @@ class RoomsRepository(BaseRepository):
             result = await self.session.execute(query)
             rooms = result.unique().scalars().all()
         except NoResultFound:
-            raise RoomNotFoundException
+            raise ObjectNotFoundException
         return [RoomWithRelsDataMapper.map_to_domain_entity(room) for room in rooms]
 
     async def get_one_or_none(self, **filter):
@@ -43,7 +43,7 @@ class RoomsRepository(BaseRepository):
         try:
             sth = result.unique().scalar_one()
         except NoResultFound:
-            raise RoomNotFoundException
+            raise ObjectNotFoundException
 
         return RoomWithRelsDataMapper.map_to_domain_entity(sth)
 
@@ -59,7 +59,7 @@ class RoomsRepository(BaseRepository):
             result = await self.session.execute(update_stmt)
             edited = self.mapper.map_to_domain_entity(result.scalar_one_or_none())
         except NoResultFound:
-            raise RoomNotFoundException
+            raise ObjectNotFoundException
 
         if f_ids_dlt:
             query = delete(RoomsFacilitiesModel).where(

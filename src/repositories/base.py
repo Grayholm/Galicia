@@ -1,3 +1,4 @@
+from asyncpg import UniqueViolationError
 from sqlalchemy import select, delete, update, insert
 from pydantic import BaseModel
 from fastapi import HTTPException
@@ -32,6 +33,15 @@ class BaseRepository:
 
         return None
 
+    async def get_one(self, **filter_by) -> BaseModel:
+        query = select(self.model).filter_by(**filter_by)
+        result = await self.session.execute(query)
+        try:
+            model = result.scalar_one()
+        except NoResultFound:
+            raise ObjectNotFoundException
+        return self.mapper.map_to_domain_entity(model)
+
     async def add(self, data: BaseModel):
         add_stmt = (
             insert(self.model).values(**data.model_dump(exclude_unset=True)).returning(self.model)
@@ -39,8 +49,10 @@ class BaseRepository:
         try:
             result = await self.session.execute(add_stmt)
             created_data = result.scalar_one_or_none()
-        except IntegrityError:
-            raise ObjectNotFoundException
+        except IntegrityError as e:
+            if isinstance(e.orig.__cause__, UniqueViolationError):
+                raise ObjectNotFoundException
+            raise e
         created = self.mapper.map_to_domain_entity(created_data)
 
         return created
