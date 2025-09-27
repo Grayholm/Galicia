@@ -7,9 +7,10 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from src.config import settings
 from src.schemas.users import UserRequestAddRegister, UserAdd, UserLogin
+from src.services.base import BaseService
 
 
-class AuthService:
+class AuthService(BaseService):
     pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
     def create_access_token(self, data: dict) -> str:
@@ -31,11 +32,6 @@ class AuthService:
         except jwt.exceptions.InvalidSignatureError:
             raise HTTPException(status_code=401, detail="Ошибка: Неверная подпись(токен)")
 
-
-class UserService:
-    def __init__(self, db):
-        self.db = db
-
     async def register_user(self, data: UserRequestAddRegister):
         if (date.today() - data.birth_day).days < 18 * 365:
             raise HTTPException(status_code=400, detail="Возраст должен быть 18+")
@@ -49,7 +45,7 @@ class UserService:
             nickname=data.nickname,
             birth_day=data.birth_day,
             email=data.email,
-            hashed_password=AuthService().hash_password(data.password),
+            hashed_password=self.hash_password(data.password),
         )
 
         try:
@@ -69,7 +65,10 @@ class UserService:
         except NoResultFound:
             raise HTTPException(status_code=401, detail="Неверный email или пароль")
 
-        if not AuthService().verify_password(data.password, user.hashed_password):
+        if not self.verify_password(data.password, user.hashed_password):
             raise HTTPException(status_code=401, detail="Неверный email или пароль")
 
-        return AuthService().create_access_token({"user_id": user.id})
+        return self.create_access_token({"user_id": user.id})
+
+    async def get_one_or_none_user(self, user_id: int):
+        return await self.db.users.get_one_or_none(id=user_id)
