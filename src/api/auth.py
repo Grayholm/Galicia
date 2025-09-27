@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Response
 
 from src.api.dependencies import DBDep
 from src.schemas.users import UserRequestAddRegister, UserLogin

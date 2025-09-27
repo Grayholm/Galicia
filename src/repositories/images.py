@@ -16,6 +16,6 @@ class HotelsImagesRepository(BaseRepository):
 
     async def add_image(self, data: BaseModel):
         add_stmt = insert(self.model).values(data).returning(self.model)
-        result = await self.session.execute(add_stmt)
+        await self.session.execute(add_stmt)
 
         return

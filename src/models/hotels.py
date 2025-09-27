@@ -1,8 +1,10 @@
+import typing
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String
 
 from src.db import Base
-
+if typing.TYPE_CHECKING:
+    from src.models import ImagesModel
 
 class HotelsModel(Base):
     __tablename__ = 'hotels'

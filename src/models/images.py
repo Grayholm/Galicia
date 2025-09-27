@@ -1,8 +1,11 @@
+import typing
 from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import DateTime, ForeignKey, String
 
 from src.db import Base
+if typing.TYPE_CHECKING:
+    from src.models import HotelsModel
 
 class ImagesModel(Base):
     __tablename__ = "images"

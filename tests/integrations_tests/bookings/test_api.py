@@ -67,7 +67,7 @@ async def test_add_and_get_my_bookings(
 
     assert response.status_code == 200
 
-    bookings_response = await authenticated_ac.get(f'/bookings/me')
+    bookings_response = await authenticated_ac.get('/bookings/me')
     assert bookings_response.status_code == 200
 
     bookings = bookings_response.json()

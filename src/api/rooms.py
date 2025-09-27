@@ -100,7 +100,7 @@ async def update_room(hotel_id: int,
                 hotel_id=hotel_id
         )
         await db.commit()
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=404, detail="Не найдена комната с заданными параметрами(Неправильное ID отеля и/или номера)")
 
     # try:
@@ -142,7 +142,7 @@ async def edit_hotel(hotel_id: int,
                 hotel_id=hotel_id
         )
         await db.commit()
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=404, detail="Не найдена комната с заданными параметрами(Неправильное ID отеля и/или номера)")
 
     if edited_room is not None:

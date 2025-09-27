@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 from unittest import mock
 
 
@@ -8,7 +9,7 @@ from src.db import Base, engine, async_session_maker
 from httpx import ASGITransport, AsyncClient
 
 from src.main import app
-from src.models import *
+from src.models import * # noqa
 
 import json
 import pytest
@@ -30,8 +31,8 @@ async def db():
 
 @pytest.fixture(scope='module')
 async def db_module():
-    async with DBManager(session_factory=async_session_maker()) as db:
-        yield db
+    async with DBManager(session_factory=async_session_maker()) as _db:
+        yield _db
 
 
 async def add_hotels_from_json(file_path: str, db):

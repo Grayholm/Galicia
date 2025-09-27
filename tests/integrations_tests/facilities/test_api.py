@@ -1,4 +1,3 @@
-from src.schemas.facilities import FacilityAdd
 
 
 async def test_add_facility(ac):
