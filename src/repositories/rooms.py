@@ -1,4 +1,7 @@
 from sqlalchemy import delete, insert, select, update
+from sqlalchemy.exc import NoResultFound
+
+from src.exceptions import RoomNotFoundException
 from src.models.facilities import RoomsFacilitiesModel
 from src.repositories.mappers.mappers import RoomDataMapper, RoomWithRelsDataMapper
 from src.repositories.utils import get_rooms_ids_for_booking
@@ -32,12 +35,13 @@ class RoomsRepository(BaseRepository):
     async def get_one_or_none(self, **filter):
         query = select(self.model).filter_by(**filter).options(joinedload(self.model.facilities))
         result = await self.session.execute(query)
-        sth = result.unique().scalar_one_or_none()
+        try:
+            sth = result.unique().scalar_one()
+        except NoResultFound:
+            raise RoomNotFoundException
 
-        if sth:
-            return RoomWithRelsDataMapper.map_to_domain_entity(sth)
+        return RoomWithRelsDataMapper.map_to_domain_entity(sth)
 
-        return None
 
     async def update(self, data, f_ids_add, f_ids_dlt, **filters):
         update_data = data.model_dump(exclude_unset=True)

@@ -41,6 +41,9 @@ class AuthService(BaseService):
             raise HTTPException(status_code=401, detail="Ошибка: Неверная подпись(токен)")
 
     async def register_user(self, data: UserRequestAddRegister):
+        if not data.birth_day:
+            raise HTTPException(status_code=400, detail="Дата рождения обязательна")
+
         if (date.today() - data.birth_day).days < 18 * 365:
             raise HTTPException(status_code=400, detail="Возраст должен быть 18+")
 

@@ -26,8 +26,12 @@ class DBManager:
         return self
 
     async def __aexit__(self, *args):
-        await self.session.rollback()
-        await self.session.close()
+        if self.session is not None:
+            await self.session.rollback()
+            await self.session.close()
 
     async def commit(self):
-        await self.session.commit()
+        if self.session is not None:
+            await self.session.commit()
+        else:
+            raise RuntimeError("Session is not initialized")
