@@ -8,8 +8,7 @@ class FacilitiesRepository(BaseRepository):
     model = FacilitiesModel
     mapper = FacilityDataMapper
 
+
 class RoomsFacilitiesRepository(BaseRepository):
     model = RoomsFacilitiesModel
     schema = RoomFacility
-
-    

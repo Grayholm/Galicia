@@ -1,11 +1,11 @@
 async def test_get_hotels(ac):
     response = await ac.get(
-        '/hotels',
+        "/hotels",
         params={
-            'date_from': '2025-01-01',
-            'date_to': '2025-12-31',
-        }
+            "date_from": "2025-01-01",
+            "date_to": "2025-12-31",
+        },
     )
-    print(f'{response.json()=}')
+    print(f"{response.json()=}")
 
     assert response.status_code == 200

@@ -22,9 +22,9 @@ class RoomAdd(BaseModel):
 class Room(RoomAdd):
     id: int
 
+
 class RoomsWithRels(Room):
     facilities: list[Facility]
-    
 
 
 class RoomUpdateRequest(BaseModel):

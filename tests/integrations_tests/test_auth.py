@@ -2,7 +2,7 @@ from src.services.auth import AuthService
 
 
 def test_encode_and_decode_access_token():
-    data = {'user_id': 1}
+    data = {"user_id": 1}
     jwt_token = AuthService().create_access_token(data=data)
 
     assert jwt_token is not None
@@ -10,4 +10,4 @@ def test_encode_and_decode_access_token():
 
     payload = AuthService().decode_token(jwt_token)
     assert payload is not None
-    assert payload['user_id'] == data['user_id']
+    assert payload["user_id"] == data["user_id"]

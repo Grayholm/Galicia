@@ -8,7 +8,7 @@ from src.repositories.mappers.mappers import ImageDataMapper
 class ImagesRepository(BaseRepository):
     model = ImagesModel
     mapper = ImageDataMapper
-    
+
 
 class HotelsImagesRepository(BaseRepository):
     model = HotelsImagesModel

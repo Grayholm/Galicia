@@ -4,8 +4,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, String
 
 from src.db import Base
+
 if typing.TYPE_CHECKING:
     from src.models import RoomsModel
+
 
 class FacilitiesModel(Base):
     __tablename__ = "facilities"
@@ -13,10 +15,11 @@ class FacilitiesModel(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(100))
 
-    rooms: Mapped[list['RoomsModel']] = relationship(
-        back_populates='facilities',
-        secondary='rooms_facilities',
+    rooms: Mapped[list["RoomsModel"]] = relationship(
+        back_populates="facilities",
+        secondary="rooms_facilities",
     )
+
 
 class RoomsFacilitiesModel(Base):
     __tablename__ = "rooms_facilities"

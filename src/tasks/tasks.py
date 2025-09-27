@@ -11,7 +11,7 @@ from src.utils.db_manager import DBManager
 @celery_instance.task(name="resize_image")
 def resize_image(image_path: str, hotel_or_room: str, hotel_id: int):
     sizes = [1000, 500, 200]
-    output_folder = f'src/images/{hotel_or_room}/{hotel_id}'
+    output_folder = f"src/images/{hotel_or_room}/{hotel_id}"
 
     img = Image.open(image_path)
 
@@ -19,8 +19,9 @@ def resize_image(image_path: str, hotel_or_room: str, hotel_id: int):
     name, ext = os.path.splitext(base_name)
 
     for size in sizes:
-
-        img_resized = img.resize((size, int(img.height * (size / img.width))), Image.Resampling.LANCZOS)
+        img_resized = img.resize(
+            (size, int(img.height * (size / img.width))), Image.Resampling.LANCZOS
+        )
 
         new_file_name = f"{name}_{size}px{ext}"
 
@@ -28,7 +29,6 @@ def resize_image(image_path: str, hotel_or_room: str, hotel_id: int):
 
         img_resized.save(output_path)
     print(f"Изображение сохранено в следующих размерах: {sizes} в папке {output_folder}")
-
 
 
 async def get_bookings_with_today_checkin_helper():

@@ -6,12 +6,12 @@ from src.models.facilities import FacilitiesModel, RoomsFacilitiesModel
 from src.models.images import ImagesModel, HotelsImagesModel
 
 __all__ = [
-    'HotelsModel',
-    'RoomsModel',
-    'UsersModel',
-    'BookingsModel',
-    'FacilitiesModel',
-    'RoomsFacilitiesModel',
-    'ImagesModel',
-    'HotelsImagesModel',
+    "HotelsModel",
+    "RoomsModel",
+    "UsersModel",
+    "BookingsModel",
+    "FacilitiesModel",
+    "RoomsFacilitiesModel",
+    "ImagesModel",
+    "HotelsImagesModel",
 ]

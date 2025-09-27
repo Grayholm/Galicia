@@ -10,6 +10,7 @@ class PaginationParams(BaseModel):
     page: Annotated[int | None, Query(1, ge=1)]
     per_page: Annotated[int | None, Query(2, ge=1, lt=30)]
 
+
 PaginationDep = Annotated[PaginationParams, Depends()]
 
 
@@ -19,10 +20,13 @@ class ItemFilter(BaseModel):
     price_min: float | None = Field(None, description="Минимальная цена")
     price_max: float | None = Field(None, description="Максимальная цена")
 
+
 RoomsFilterDep = Annotated[ItemFilter, Depends()]
+
 
 async def get_db():
     async with DBManager(session_factory=async_session_maker()) as db:
         yield db
+
 
 DBDep = Annotated[DBManager, Depends(get_db)]

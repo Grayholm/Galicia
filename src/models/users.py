@@ -5,9 +5,9 @@ from sqlalchemy import String, Date
 
 from src.db import Base
 
+
 class UsersModel(Base):
     __tablename__ = "users"
-
 
     id: Mapped[int] = mapped_column(primary_key=True)
     first_name: Mapped[str] = mapped_column(String(50))

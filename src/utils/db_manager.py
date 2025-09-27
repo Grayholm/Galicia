@@ -24,7 +24,7 @@ class DBManager:
         self.hotels_images = HotelsImagesRepository(self.session)
 
         return self
-        
+
     async def __aexit__(self, *args):
         await self.session.rollback()
         await self.session.close()

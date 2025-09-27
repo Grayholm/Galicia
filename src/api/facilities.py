@@ -7,7 +7,8 @@ from src.schemas.facilities import FacilityAdd
 
 router = APIRouter(prefix="/facilities", tags=["Удобства"])
 
-@router.post('')
+
+@router.post("")
 async def add_facility(facility: FacilityAdd, db: DBDep):
     added_facility = await db.facilities.add(facility)
     await db.commit()
@@ -15,7 +16,7 @@ async def add_facility(facility: FacilityAdd, db: DBDep):
     return {"status": "Ok", "data": added_facility}
 
 
-@router.get('')
+@router.get("")
 @cache(expire=10)
 async def get_facilities(db: DBDep):
     print("ИДУ В БАЗУ ДАННЫХ")
