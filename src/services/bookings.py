@@ -13,7 +13,7 @@ class BookingsService(BaseService):
         room_data = await db.rooms.get_one_or_none(id=data.room_id)
 
         available_rooms_query = get_rooms_ids_for_booking(
-            date_from=data.date_from, date_to=data.date_to
+            date_from=data.date_from, date_to=data.date_to, hotel_id=data.hotel_id
         )
 
         available_rooms_query = available_rooms_query.filter(

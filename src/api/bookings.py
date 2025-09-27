@@ -38,7 +38,7 @@ async def add_booking(user_id: UserIdDep, db: DBDep, data: BookingAddRequest):
     except RoomNotFoundException:
         raise HTTPException(status_code=404, detail='Такая комната не найдена')
     except AvailableRoomNotFoundException:
-        raise HTTPException(status_code=400, detail='На выбранные даты нет свободных номеров')
+        raise HTTPException(status_code=409, detail='На выбранные даты нет свободных номеров')
 
     await db.commit()
 
