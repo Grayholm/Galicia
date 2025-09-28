@@ -142,7 +142,7 @@ async def update_room(
     summary="Частичное обновление данных об отеле",
     description="Тут мы частично обновляем данные",
 )
-async def edit_hotel(
+async def partially_update_hotel(
     hotel_id: int,
     db: DBDep,
     room_id: int,

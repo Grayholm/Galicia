@@ -83,7 +83,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
-        "bookings",
+        "01_bookings",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("room_id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
@@ -119,7 +119,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_table("rooms_facilities")
-    op.drop_table("bookings")
+    op.drop_table("01_bookings")
     op.drop_table("rooms")
     op.drop_table("hotels_images")
     op.drop_table("users")

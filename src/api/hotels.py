@@ -1,10 +1,10 @@
 from datetime import date
 
-from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, \
-    HotelNotFoundHTTPException
+from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, HotelNotFoundHTTPException, DataIsEmptyException
 from src.schemas.hotels import HotelAdd, UpdateHotel
 from fastapi import Query, APIRouter, Body, HTTPException
 from src.api.dependencies import DBDep, PaginationDep
+from src.services.hotels import HotelService
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -20,14 +20,7 @@ async def get_hotels(
 ):
 
     try:
-        result = await db.hotels.get_hotels_by_time(
-            title,
-            location,
-            pagination.per_page,
-            pagination.per_page * (pagination.page - 1),
-            date_from,
-            date_to,
-        )
+        result = await HotelService(db).get_hotels(pagination, title, location, date_from, date_to)
     except InvalidDateRangeError:
         raise HTTPException(status_code=400, detail='Дата заезда позже дата выезда')
     except ObjectNotFoundException:
@@ -39,11 +32,9 @@ async def get_hotels(
 @router.get("/{hotel_id}")
 async def get_one_hotel_by_id(hotel_id: int, db: DBDep):
     try:
-        result = await db.hotels.get_one_hotel_by_id(hotel_id)
+        return await HotelService(db).get_one_hotel_by_id(hotel_id)
     except ObjectNotFoundException:
         raise HotelNotFoundHTTPException
-
-    return result
 
 
 @router.post("")
@@ -59,16 +50,14 @@ async def create_hotel(
         }
     ),
 ):
-    created_hotel = await db.hotels.add(hotel_data)
-    await db.commit()
+    created_hotel = await HotelService(db).create_hotel(hotel_data)
 
     return {"status": "Ok", "data": created_hotel}
 
 
 @router.delete("/{hotel_id}")
 async def delete_hotel(hotel_id: int, db: DBDep):
-    deleted_hotel = await db.hotels.delete(hotel_id)
-    await db.commit()
+    deleted_hotel = await HotelService(db).delete_hotel(hotel_id)
 
     if deleted_hotel is None:
         return {"status": f"Hotel {hotel_id} is deleted"}
@@ -78,11 +67,7 @@ async def delete_hotel(hotel_id: int, db: DBDep):
 
 @router.put("/{hotel_id}")
 async def update_hotel(hotel_id: int, hotel: UpdateHotel, db: DBDep):
-    if hotel.title is None or hotel.location is None:
-        return {"message": "Заполнены не все поля"}
-
-    updated_hotel = await db.hotels.update(hotel, id=hotel_id)
-    await db.commit()
+    updated_hotel = await HotelService(db).update_hotel(hotel, hotel_id=hotel_id)
 
     if updated_hotel is not None:
         return {"message": f"Информация обновлена = {updated_hotel}"}
@@ -95,16 +80,11 @@ async def update_hotel(hotel_id: int, hotel: UpdateHotel, db: DBDep):
     summary="Частичное обновление данных об отеле",
     description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>",
 )
-async def edit_hotel(hotel_id: int, db: DBDep, hotel: UpdateHotel | None = Body(None)):
-    if hotel is None:
-        return {"message": "Отсутствуют данные для обновления"}
-
-    if all(value is None for value in hotel.model_dump().values()):
-        raise HTTPException(status_code=400, detail="Отсутствуют данные для обновления")
-
-    edited_hotel = await db.hotels.update(hotel, id=hotel_id)
-    await db.commit()
-
+async def partial_update_item(hotel_id: int, db: DBDep, hotel: UpdateHotel | None = Body(None)):
+    try:
+        edited_hotel = await HotelService(db).partial_update_item(hotel_id=hotel_id, hotel=hotel)
+    except DataIsEmptyException:
+        raise HTTPException(status_code=401)
     if edited_hotel is not None:
         return {"message": f"Информация обновлена = {edited_hotel}"}
 

@@ -1,5 +1,5 @@
 from src.services.base import BaseService
 
 
-class RoomsService(BaseService):
+class RoomService(BaseService):
     pass

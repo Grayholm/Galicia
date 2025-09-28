@@ -1,9 +1,8 @@
-import datetime
 import logging
 
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.exc import NoResultFound, SQLAlchemyError
+from sqlalchemy.exc import NoResultFound
 
 from src.exceptions import InvalidDateRangeError, ObjectNotFoundException
 from src.repositories.mappers.mappers import HotelDataMapper, ImageDataMapper
@@ -28,7 +27,6 @@ class HotelsRepository(BaseRepository):
                 raise InvalidDateRangeError
 
             rooms_ids = get_rooms_ids_for_booking(date_from, date_to)
-            logging.debug(f"Found {len(rooms_ids)} available rooms")
 
             hotels_ids = (
                 select(RoomsModel.hotel_id).select_from(RoomsModel).where(RoomsModel.id.in_(rooms_ids))

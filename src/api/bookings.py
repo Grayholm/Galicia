@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from src.api.dependencies import DBDep
 from src.exceptions import AvailableRoomNotFoundException, ObjectNotFoundException, RoomNotFoundHTTPException
 from src.schemas.bookings import BookingAddRequest
-from src.services.bookings import BookingsService
+from src.services.bookings import BookingService
 from src.utils.auth_utils import UserIdDep
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
@@ -34,7 +34,7 @@ async def get_all_bookings(
 @router.post("")
 async def add_booking(user_id: UserIdDep, db: DBDep, data: BookingAddRequest):
     try:
-        result = await BookingsService(db).add_booking(data, user_id, db)
+        result = await BookingService(db).add_booking(data, user_id, db)
     except ObjectNotFoundException:
         raise RoomNotFoundHTTPException
     except AvailableRoomNotFoundException:

@@ -77,7 +77,7 @@ class AuthService(BaseService):
         try:
             await self.db.users.add(new_user)
             await self.db.commit()
-            logging.info(f'Пользователь успешно зарегистрировался с почтой={new_user.email}, id={new_user.id}')
+            logging.info(f'Пользователь успешно зарегистрировался с почтой={new_user.email}')
             return {'message': 'Вы успешно зарегистрировались!'}
         except ObjectNotFoundException as e:
             logging.warning(f'Пользователь ввел уже существующую почту, {new_user.email}')
