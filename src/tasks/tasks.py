@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from src.db import async_session_maker
 from src.tasks.celery_app import celery_instance
@@ -10,6 +11,7 @@ from src.utils.db_manager import DBManager
 
 @celery_instance.task(name="resize_image")
 def resize_image(image_path: str, hotel_or_room: str, hotel_id: int):
+    logging.debug(f'Вызывается функция image_path с {image_path}')
     sizes = [1000, 500, 200]
     output_folder = f"src/images/{hotel_or_room}/{hotel_id}"
 
@@ -28,14 +30,13 @@ def resize_image(image_path: str, hotel_or_room: str, hotel_id: int):
         output_path = os.path.join(output_folder, new_file_name)
 
         img_resized.save(output_path)
-    print(f"Изображение сохранено в следующих размерах: {sizes} в папке {output_folder}")
+    logging.info(f"Изображение сохранено в следующих размерах: {sizes} в папке {output_folder}")
 
 
 async def get_bookings_with_today_checkin_helper():
-    print("Я ЗАПУСКАЮСЬ")
     async with DBManager(session_factory=async_session_maker) as db:
         bookings = await db.bookings.get_bookings_with_today_checkin()
-        print(f"{bookings=}")
+        logging.debug(f"{bookings=}")
 
 
 @celery_instance.task(name="booking_today_checkin")

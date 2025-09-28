@@ -1,3 +1,5 @@
+import logging
+
 from asyncpg import UniqueViolationError
 from sqlalchemy import select, delete, update, insert
 from pydantic import BaseModel
@@ -50,9 +52,16 @@ class BaseRepository:
             result = await self.session.execute(add_stmt)
             created_data = result.scalar_one_or_none()
         except IntegrityError as e:
+            logging.exception(
+                f"Ошибка добавления данных в БД, входные данные={data}"
+            )
             if isinstance(e.orig.__cause__, UniqueViolationError):
                 raise ObjectNotFoundException
-            raise e
+            else:
+                logging.exception(
+                    f'Незнакомая ошибка, входные данные={data}'
+                )
+                raise e
         created = self.mapper.map_to_domain_entity(created_data)
 
         return created
