@@ -25,6 +25,9 @@ class EmailIsAlreadyRegisteredException(BaseException):
 class RegisterErrorException(BaseException):
     detail = "Register error"
 
+class LoginErrorException(BaseException):
+    detail = "Login error"
+
 class InvalidDateRangeError(BaseException):
     detail = "Invalid date range"
 

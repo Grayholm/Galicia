@@ -1,8 +1,9 @@
 import datetime
+import logging
 
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import NoResultFound, SQLAlchemyError
 
 from src.exceptions import InvalidDateRangeError, ObjectNotFoundException
 from src.repositories.mappers.mappers import HotelDataMapper, ImageDataMapper
@@ -18,55 +19,76 @@ class HotelsRepository(BaseRepository):
     mapper = HotelDataMapper
 
     async def get_hotels_by_time(self, title, location, limit, offset, date_from, date_to):
-        if date_from >= date_to:
-            raise InvalidDateRangeError
-
-
-        rooms_ids = get_rooms_ids_for_booking(date_from, date_to)
-        hotels_ids = (
-            select(RoomsModel.hotel_id).select_from(RoomsModel).where(RoomsModel.id.in_(rooms_ids))
-        )
-
-        query = select(self.model).where(self.model.id.in_(hotels_ids))
-
-        if title:
-            query = query.where(self.model.title.ilike(f"%{title}%"))
-        if location:
-            query = query.where(self.model.location.ilike(f"%{location}%"))
-
-        query = query.limit(limit).offset(offset)
-
-        query = query.options(joinedload(self.model.images))
+        logging.debug(f"Searching hotels: title='{title}', location='{location}', "
+                      f"dates={date_from} to {date_to}, limit={limit}, offset={offset}")
 
         try:
+            if date_from >= date_to:
+                logging.warning(f"Invalid date range: {date_from} to {date_to}")
+                raise InvalidDateRangeError
+
+            rooms_ids = get_rooms_ids_for_booking(date_from, date_to)
+            logging.debug(f"Found {len(rooms_ids)} available rooms")
+
+            hotels_ids = (
+                select(RoomsModel.hotel_id).select_from(RoomsModel).where(RoomsModel.id.in_(rooms_ids))
+            )
+
+            query = select(self.model).where(self.model.id.in_(hotels_ids))
+
+            if title:
+                query = query.where(self.model.title.ilike(f"%{title}%"))
+                logging.debug(f"Applied title filter: {title}")
+            if location:
+                query = query.where(self.model.location.ilike(f"%{location}%"))
+                logging.debug(f"Applied location filter: {location}")
+
+            query = query.limit(limit).offset(offset)
+            query = query.options(joinedload(self.model.images))
+
             result = await self.session.execute(query)
             hotels_data = result.unique().scalars().all()
 
             if not hotels_data:
+                logging.info(f"No hotels found for criteria: title='{title}', location='{location}'")
                 raise ObjectNotFoundException("Отели не найдены")
-            hotels = [
-                self.mapper.map_to_domain_entity(model) for model in result.unique().scalars().all()
-            ]
-        except NoResultFound:
-            raise ObjectNotFoundException
 
-        return hotels
+            hotels = [
+                self.mapper.map_to_domain_entity(model) for model in hotels_data
+            ]
+
+            logging.info(f"Found {len(hotels)} hotels for criteria: "
+                         f"title='{title}', location='{location}', dates={date_from} to {date_to}")
+
+            return hotels
+
+        except InvalidDateRangeError:
+            raise
+        except ObjectNotFoundException:
+            raise
 
     async def get_one_hotel_by_id(self, hotel_id: int):
-        stmt = (
-            select(HotelsModel)
-            .options(selectinload(HotelsModel.images))
-            .where(HotelsModel.id == hotel_id)
-        )
+        logging.debug(f"Fetching hotel by id: {hotel_id}")
+
         try:
+            stmt = (
+                select(HotelsModel)
+                .options(selectinload(HotelsModel.images))
+                .where(HotelsModel.id == hotel_id)
+            )
+
             result = await self.session.execute(stmt)
             hotel = result.scalar_one()
+
+            logging.debug(f"Successfully fetched hotel: {hotel_id}")
+            return hotel
+
         except NoResultFound:
+            logging.warning(f"Hotel not found: {hotel_id}")
             raise ObjectNotFoundException
 
-        return hotel
-
     async def add_image(self, image: BaseModel, hotel):
+        logging.debug(f"Adding image to hotel: {hotel.id}")
         image_model = ImageDataMapper.map_to_persistence_entity(image)
 
         hotel.images.append(image_model)

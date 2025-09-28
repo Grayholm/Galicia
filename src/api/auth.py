@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Response, HTTPException
 
 from src.api.dependencies import DBDep
-from src.exceptions import NicknameIsEmptyException, EmailIsAlreadyRegisteredException, RegisterErrorException
+from src.exceptions import NicknameIsEmptyException, EmailIsAlreadyRegisteredException, RegisterErrorException, \
+    LoginErrorException
 from src.schemas.users import UserRequestAddRegister, UserLogin
 from src.services.auth import AuthService
 from src.utils.auth_utils import UserIdDep
@@ -25,7 +26,10 @@ async def register_user(data: UserRequestAddRegister, db: DBDep):
 
 @router.post("/login")
 async def login_user(data: UserLogin, response: Response, db: DBDep):
-    access_token = await AuthService(db).login_and_get_access_token(data=data)
+    try:
+        access_token = await AuthService(db).login_and_get_access_token(data=data)
+    except LoginErrorException:
+        raise HTTPException(status_code=401, detail="Неверный email или пароль")
     response.set_cookie("access_token", access_token)
     return {"access_token": access_token}
 
