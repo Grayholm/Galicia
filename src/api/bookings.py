@@ -14,7 +14,7 @@ async def get_my_bookings(
     user_id: UserIdDep,
     db: DBDep,
 ):
-    bookings_data = await db.bookings.get_filtered(user_id=user_id)
+    bookings_data = await BookingService(db).get_my_bookings(user_id=user_id)
 
     if not bookings_data:
         return {"message": "У вас нет бронирований"}
@@ -26,7 +26,7 @@ async def get_my_bookings(
 async def get_all_bookings(
     db: DBDep,
 ):
-    bookings_data = await db.bookings.get_all()
+    bookings_data = await BookingService(db).get_all_bookings()
 
     return bookings_data
 
@@ -40,15 +40,12 @@ async def add_booking(user_id: UserIdDep, db: DBDep, data: BookingAddRequest):
     except AvailableRoomNotFoundException:
         raise HTTPException(status_code=409, detail='На выбранные даты нет свободных номеров')
 
-    await db.commit()
-
     return {"status": "OK", "data": result}
 
 
 @router.delete("{booking_id}")
 async def delete_booking(user_id: UserIdDep, db: DBDep, booking_id: int):
-    deleted_booking = await db.bookings.delete(user_id=user_id, id=booking_id)
-    await db.commit()
+    deleted_booking = await BookingService(db).delete_booking(user_id, booking_id)
 
     if deleted_booking is None:
         raise HTTPException(

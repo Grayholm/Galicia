@@ -7,7 +7,11 @@ from src.services.base import BaseService
 
 
 class BookingService(BaseService):
+    async def get_my_bookings(self, user_id: int):
+        return await self.db.bookings.get_filtered(user_id=user_id)
 
+    async def get_all_bookings(self):
+        return await self.db.bookings.get_all()
 
     async def add_booking(self, data, user_id, db):
         room_data = await db.rooms.get_one_or_none(id=data.room_id)
@@ -29,4 +33,12 @@ class BookingService(BaseService):
         booking_data = BookingAdd(user_id=user_id, price=room_data.price, **data.model_dump())
         result = await db.bookings.add(booking_data)
 
+        await self.db.commit()
+
         return result
+
+    async def delete_booking(self, user_id: int, booking_id: int):
+        deleted_booking = await self.db.bookings.delete(user_id=user_id, id=booking_id)
+        await self.db.commit()
+
+        return deleted_booking

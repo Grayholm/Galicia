@@ -1,7 +1,7 @@
 from datetime import date
 
 from src.api.dependencies import PaginationDep
-from src.exceptions import DataIsEmptyException
+from src.exceptions import DataIsEmptyException, ObjectNotFoundException, HotelNotFoundException
 from src.schemas.hotels import HotelAdd, UpdateHotel
 from src.services.base import BaseService
 
@@ -60,3 +60,9 @@ class HotelService(BaseService):
         await self.db.commit()
 
         return edited_hotel
+
+    async def get_hotel_with_check(self, hotel_id: int):
+        try:
+            await self.db.hotels.get_one(id=hotel_id)
+        except ObjectNotFoundException:
+            raise HotelNotFoundException

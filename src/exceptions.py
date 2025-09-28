@@ -12,6 +12,10 @@ class DataIntegrityError(BaseException):
 
 class ObjectNotFoundException(BaseException):
     detail = "Object Not Found"
+class HotelNotFoundException(ObjectNotFoundException):
+    detail = "Hotel Not Found"
+class RoomNotFoundException(ObjectNotFoundException):
+    detail = "Room Not Found"
 
 class AvailableRoomNotFoundException(BaseException):
     detail = "Available Room not found"

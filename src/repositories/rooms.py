@@ -56,7 +56,7 @@ class RoomsRepository(BaseRepository):
         except ObjectNotFoundException:
             raise
 
-    async def get_one_or_none(self, **filter):
+    async def get_one_room(self, **filter):
         logging.debug(f"Getting room with filters: {filter}")
 
         try:
