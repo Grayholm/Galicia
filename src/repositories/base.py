@@ -3,7 +3,6 @@ import logging
 from asyncpg import UniqueViolationError
 from sqlalchemy import select, delete, update, insert
 from pydantic import BaseModel
-from fastapi import HTTPException
 from sqlalchemy.exc import NoResultFound, IntegrityError
 
 from src.exceptions import ObjectNotFoundException

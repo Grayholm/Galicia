@@ -10,6 +10,15 @@ class BaseException(Exception):
 class DataIntegrityError(BaseException):
     detail = "Data Integrity Error"
 
+class BaseServiceError(Exception):
+    detail = "Base Service Error"
+
+class ServiceUnavailableError(BaseServiceError):
+    detail = "Service Unavailable"
+
+class ImageProcessingError(BaseServiceError):
+    detail = "Image Processing Error"
+
 class ObjectNotFoundException(BaseException):
     detail = "Object Not Found"
 class HotelNotFoundException(ObjectNotFoundException):

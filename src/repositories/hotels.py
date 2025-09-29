@@ -92,3 +92,24 @@ class HotelsRepository(BaseRepository):
         hotel.images.append(image_model)
 
         return True
+
+    async def add_image_to_hotel(self, hotel_id: int, image_entity: BaseModel) -> bool:
+        """Добавить изображение к отелю через ORM"""
+        # Получаем ORM-модель отеля
+        hotel_orm = await self._get_orm_model(id=hotel_id)
+
+        # Маппим доменную сущность в ORM-модель
+        image_orm = ImageDataMapper.map_to_persistence_entity(image_entity)
+
+        # Добавляем в коллекцию
+        hotel_orm.images.append(image_orm)
+        return True
+
+    async def _get_orm_model(self, **filter_by) -> HotelsModel:
+        """Получить ORM-модель вместо доменной сущности"""
+        query = select(self.model).filter_by(**filter_by)
+        result = await self.session.execute(query)
+        try:
+            return result.scalar_one()  # ← возвращаем ORM-модель
+        except NoResultFound:
+            raise ObjectNotFoundException
