@@ -1,5 +1,7 @@
 from datetime import date
 
+from fastapi.exceptions import RequestValidationError
+
 from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, HotelNotFoundHTTPException, DataIsEmptyException
 from src.schemas.hotels import HotelAdd, UpdateHotel
 from fastapi import Query, APIRouter, Body, HTTPException

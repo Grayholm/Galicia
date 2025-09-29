@@ -11,7 +11,7 @@ router = APIRouter(prefix="/facilities", tags=["Удобства"])
 
 @router.post("")
 async def add_facility(facility: FacilityAdd, db: DBDep):
-    added_facility = FacilityService(db).add_facility(facility)
+    added_facility = await FacilityService(db).add_facility(facility)
     return {"status": "Ok", "data": added_facility}
 
 @router.get("")
