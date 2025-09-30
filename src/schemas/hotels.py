@@ -32,8 +32,10 @@ class HotelWithImages(HotelAdd):
     images: List[Image]
 
 
-class Hotel(HotelAdd):
+class Hotel(BaseModel):
     id: int
+    title: str
+    location: str
 
     model_config = ConfigDict(from_attributes=True)
 

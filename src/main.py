@@ -2,6 +2,9 @@ import sys
 from pathlib import Path
 import logging
 
+from fastapi.exceptions import RequestValidationError
+from starlette.responses import JSONResponse
+
 # Настройка пути в самом начале
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -39,6 +42,14 @@ app.include_router(router_rooms)
 app.include_router(router_bookings)
 app.include_router(router_facilities)
 app.include_router(router_images)
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc: RequestValidationError):
+    # Можно сюда логирование вставить, если нужно
+    return JSONResponse(
+        status_code=400,  # твой кастомный код
+        content={"detail": "Поля не должны быть пустыми и должны быть строкой"}
+    )
 
 
 if __name__ == "__main__":

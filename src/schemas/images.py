@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ImageAdd(BaseModel):
@@ -9,6 +9,7 @@ class ImageAdd(BaseModel):
 class Image(ImageAdd):
     id: int
 
+    model_config = ConfigDict(from_attributes=True)
 
 class HotelImageAdd(BaseModel):
     hotel_id: int

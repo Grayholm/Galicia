@@ -76,7 +76,7 @@ class HotelsRepository(BaseRepository):
             )
 
             result = await self.session.execute(stmt)
-            hotel = result.scalar_one()
+            hotel = self.mapper.map_to_domain_entity(result.scalar_one())
 
             logging.debug(f"Successfully fetched hotel: {hotel_id}")
             return hotel

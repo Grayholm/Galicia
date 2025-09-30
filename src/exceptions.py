@@ -13,6 +13,9 @@ class DataIntegrityError(BaseException):
 class BaseServiceError(Exception):
     detail = "Base Service Error"
 
+class ValidationServiceError(BaseServiceError):
+    detail = "Validation error"
+
 class ServiceUnavailableError(BaseServiceError):
     detail = "Service Unavailable"
 
@@ -41,7 +44,7 @@ class RegisterErrorException(BaseException):
 class LoginErrorException(BaseException):
     detail = "Login error"
 
-class InvalidDateRangeError(BaseException):
+class InvalidDateRangeError(ValidationServiceError):
     detail = "Invalid date range"
 
 class DataIsEmptyException(BaseException):

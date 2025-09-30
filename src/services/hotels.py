@@ -1,7 +1,8 @@
 from datetime import date
 
+
 from src.api.dependencies import PaginationDep
-from src.exceptions import DataIsEmptyException, ObjectNotFoundException, HotelNotFoundException
+from src.exceptions import DataIsEmptyException, ObjectNotFoundException, HotelNotFoundException, ValidationServiceError
 from src.schemas.hotels import HotelAdd, UpdateHotel
 from src.services.base import BaseService
 
@@ -40,25 +41,33 @@ class HotelService(BaseService):
 
         return deleted
 
-    async def update_hotel(self, hotel: UpdateHotel, hotel_id: int):
+    async def update_hotel(self, hotel: HotelAdd, hotel_id: int):
         if hotel.title is None or hotel.location is None:
-            return {"message": "Заполнены не все поля"}
+            return DataIsEmptyException("Отсутствуют данные для обновления")
+        try:
+            updated_hotel = await self.db.hotels.update(hotel, id=hotel_id)
+        except (ValidationServiceError, ObjectNotFoundException):
+            raise
 
-        updated_hotel = await self.db.hotels.update(hotel, id=hotel_id)
         await self.db.commit()
-
         return updated_hotel
 
-    async def partial_update_item(self, hotel_id: int, hotel: UpdateHotel | None):
+    async def partially_update_item(self, hotel_id: int, hotel: UpdateHotel | None):
         if hotel is None:
-            return {"message": "Отсутствуют данные для обновления"}
-
-        if all(value is None for value in hotel.model_dump().values()):
             raise DataIsEmptyException("Отсутствуют данные для обновления")
 
-        edited_hotel = await self.db.hotels.update(hotel, id=hotel_id)
-        await self.db.commit()
+        for k, v in hotel.model_dump().items():
+            if v is None:
+                continue
+            if isinstance(v, str) and v.strip() == "":
+                raise DataIsEmptyException("Отсутствуют данные для обновления")
 
+        try:
+            edited_hotel = await self.db.hotels.update(hotel, id=hotel_id)
+        except (ValidationServiceError, ObjectNotFoundException):
+            raise
+
+        await self.db.commit()
         return edited_hotel
 
     async def get_hotel_with_check(self, hotel_id: int):

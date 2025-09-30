@@ -2,10 +2,10 @@ import logging
 
 from asyncpg import UniqueViolationError
 from sqlalchemy import select, delete, update, insert
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from sqlalchemy.exc import NoResultFound, IntegrityError
 
-from src.exceptions import ObjectNotFoundException
+from src.exceptions import ObjectNotFoundException, ValidationServiceError
 from src.repositories.mappers.base import DataMapper
 
 
@@ -79,7 +79,14 @@ class BaseRepository:
         )
         result = await self.session.execute(update_stmt)
 
-        edited = self.mapper.map_to_domain_entity(result.scalar_one_or_none())
+        try:
+            object = result.scalar_one()
+            edited = self.mapper.map_to_domain_entity(object)
+        except NoResultFound:
+            raise ObjectNotFoundException
+        except ValidationError as e:
+            raise ValidationServiceError
+
 
         return edited
 
