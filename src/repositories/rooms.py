@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import NoResultFound
 
-from src.exceptions import InvalidDateRangeError, ObjectNotFoundException
+from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, RoomNotFoundException
 from src.models.facilities import RoomsFacilitiesModel
 from src.repositories.mappers.mappers import RoomDataMapper, RoomWithRelsDataMapper
 from src.repositories.utils import get_rooms_ids_for_booking
@@ -25,7 +25,7 @@ class RoomsRepository(BaseRepository):
                 raise InvalidDateRangeError
 
             rooms_ids_to_get = get_rooms_ids_for_booking(date_from, date_to, hotel_id)
-            logging.debug(f"Found {len(rooms_ids_to_get)} available room IDs")
+            logging.debug(f"Found {rooms_ids_to_get} available room IDs")
 
             query = select(self.model).where(self.model.id.in_(rooms_ids_to_get))
 
@@ -77,13 +77,26 @@ class RoomsRepository(BaseRepository):
         logging.debug(f"Updating room {room_id}, add facilities: {f_ids_add}, delete facilities: {f_ids_dlt}")
 
         try:
-            update_data = data.model_dump(exclude_unset=True)
-            update_stmt = (
-                update(self.model).filter_by(**filters).values(**update_data).returning(self.model)
-            )
+            if data and (hasattr(data, 'model_dump') or data):
+                if hasattr(data, 'model_dump'):
+                    update_data = data.model_dump(exclude_unset=True)
+                else:
+                    update_data = data
 
-            result = await self.session.execute(update_stmt)
-            edited_room = result.scalar_one()
+                if update_data:
+                    update_stmt = (
+                        update(self.model).filter_by(**filters).values(**update_data).returning(self.model)
+                    )
+                    result = await self.session.execute(update_stmt)
+                    edited_room = result.scalar_one()
+                else:
+                    query = select(self.model).filter_by(**filters)
+                    result = await self.session.execute(query)
+                    edited_room = result.scalar_one()
+            else:
+                query = select(self.model).filter_by(**filters)
+                result = await self.session.execute(query)
+                edited_room = result.scalar_one()
 
             if not edited_room:
                 logging.warning(f"Room not found for update: {filters}")
@@ -128,4 +141,32 @@ class RoomsRepository(BaseRepository):
             return edited
 
         except ObjectNotFoundException:
+            raise
+
+
+    async def delete_room(self, hotel_id: int, room_id: int) -> None:
+        """
+        Удаление комнаты с предварительным удалением связанных facilities
+        """
+        try:
+            delete_facilities_query = delete(RoomsFacilitiesModel).where(
+                RoomsFacilitiesModel.room_id == room_id
+            )
+            await self.session.execute(delete_facilities_query)
+            logging.debug(f"Deleted facilities links for room {room_id}")
+
+            delete_room_query = delete(self.model).where(
+                self.model.id == room_id,
+                self.model.hotel_id == hotel_id
+            )
+            result = await self.session.execute(delete_room_query)
+
+            if result.rowcount == 0:
+                logging.warning(f"Room {room_id} in hotel {hotel_id} not found for deletion")
+                raise RoomNotFoundException("Room not found")
+
+            logging.info(f"Room {room_id} in hotel {hotel_id} deleted successfully")
+
+        except Exception as e:
+            logging.error(f"Error deleting room {room_id} from hotel {hotel_id}: {e}")
             raise

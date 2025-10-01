@@ -1,9 +1,10 @@
 from datetime import date
 from fastapi import APIRouter, HTTPException, Body, Query
+from pydantic import ValidationError
 
 from src.api.dependencies import DBDep, RoomsFilterDep
 from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, HotelNotFoundHTTPException, \
-    RoomNotFoundHTTPException, HotelNotFoundException, RoomNotFoundException, DataIsEmptyException
+    RoomNotFoundHTTPException, HotelNotFoundException, RoomNotFoundException, DataIsEmptyException, DataIntegrityError
 from src.schemas.rooms import RoomAddRequest, RoomUpdateRequest
 from src.services.rooms import RoomService
 
@@ -61,6 +62,8 @@ async def create_room(
         room = await RoomService(db).create_room(hotel_id, data)
     except HotelNotFoundException:
         raise HotelNotFoundHTTPException
+    except ValueError:
+        raise HTTPException(status_code=400, detail='Название не может быть пустым')
 
     return {"Номер добавлен": room}
 
@@ -82,6 +85,10 @@ async def update_room(
         updated_room = await RoomService(db).update_room(hotel_id, room_id, f_ids_to_add, f_ids_to_dlt, data)
     except DataIsEmptyException:
         raise HTTPException(status_code=400, detail="Отсутствуют данные для обновления")
+    except RoomNotFoundException:
+        raise RoomNotFoundHTTPException
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
 
     return {"message": f"Информация обновлена = {updated_room}"}
 
@@ -103,6 +110,8 @@ async def partially_update_hotel(
         partially_updated_room = await RoomService(db).partially_update_room(hotel_id, room_id, f_ids_to_add, f_ids_to_dlt, data)
     except DataIsEmptyException:
         raise HTTPException(status_code=400, detail="Отсутствуют данные для обновления")
+    except DataIntegrityError:
+        raise HTTPException(status_code=400, detail='Данные значения facilities не найдены в БД')
 
     return {"message": f"Информация обновлена = {partially_updated_room}"}
 
@@ -115,5 +124,7 @@ async def delete_room(hotel_id: int, room_id: int, db: DBDep):
         raise HotelNotFoundHTTPException
     except RoomNotFoundException:
         raise RoomNotFoundHTTPException
+    # except IntegrityError:
+    #     raise HTTPException()
 
     return {"status": f"Комната {room_id} успешно удалена"}
