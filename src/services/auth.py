@@ -7,8 +7,12 @@ from passlib.context import CryptContext
 from sqlalchemy.exc import NoResultFound
 
 from src.config import settings
-from src.exceptions import EmailIsAlreadyRegisteredException, NicknameIsEmptyException, \
-    ObjectNotFoundException, LoginErrorException
+from src.exceptions import (
+    EmailIsAlreadyRegisteredException,
+    NicknameIsEmptyException,
+    ObjectNotFoundException,
+    LoginErrorException,
+)
 from src.schemas.users import UserRequestAddRegister, UserAdd, UserLogin
 from src.services.base import BaseService
 
@@ -27,7 +31,7 @@ class AuthService(BaseService):
             encoded_jwt = jwt.encode(
                 to_encode,
                 settings.JWT_SECRET_KEY.get_secret_value(),
-                algorithm=settings.JWT_ALGORITHM
+                algorithm=settings.JWT_ALGORITHM,
             )
             return encoded_jwt
         except Exception as e:
@@ -41,28 +45,28 @@ class AuthService(BaseService):
         return self.pwd_context.hash(password)
 
     def decode_token(self, token: str) -> dict:
-        logging.debug('Decode token')
+        logging.debug("Decode token")
         try:
             result = jwt.decode(
                 token,
                 settings.JWT_SECRET_KEY.get_secret_value(),
                 algorithms=[settings.JWT_ALGORITHM],
             )
-            logging.info('Token decoded')
+            logging.info("Token decoded")
             return result
         except jwt.exceptions.InvalidSignatureError:
-            logging.error('Invalid token')
+            logging.error("Invalid token")
             raise HTTPException(status_code=401, detail="Ошибка: Неверная подпись(токен)")
 
     async def register_user(self, data: UserRequestAddRegister):
         logging.info(f"Начинаем регистрацию пользователя с почтой: {data.email}")
 
         if data.birth_day and (date.today() - data.birth_day).days < 18 * 365:
-            logging.warning(f'Пользователь младше 18, {data.birth_day}')
+            logging.warning(f"Пользователь младше 18, {data.birth_day}")
             raise HTTPException(status_code=400, detail="Возраст должен быть 18+")
 
         if not data.nickname.strip():
-            logging.warning(f'Пустой ник во время регистрации для почты, {data.email}')
+            logging.warning(f"Пустой ник во время регистрации для почты, {data.email}")
             raise NicknameIsEmptyException
 
         new_user = UserAdd(
@@ -77,23 +81,22 @@ class AuthService(BaseService):
         try:
             await self.db.users.add(new_user)
             await self.db.commit()
-            logging.info(f'Пользователь успешно зарегистрировался с почтой={new_user.email}')
-            return {'message': 'Вы успешно зарегистрировались!'}
+            logging.info(f"Пользователь успешно зарегистрировался с почтой={new_user.email}")
+            return {"message": "Вы успешно зарегистрировались!"}
         except ObjectNotFoundException:
-            logging.warning(f'Пользователь ввел уже существующую почту, {new_user.email}')
+            logging.warning(f"Пользователь ввел уже существующую почту, {new_user.email}")
             raise EmailIsAlreadyRegisteredException
 
-
     async def login_and_get_access_token(self, data: UserLogin):
-        logging.info(f'Login and get access token for email: {data.email}')
+        logging.info(f"Login and get access token for email: {data.email}")
         try:
             user = await self.db.users.get_user_with_hashed_password(user_email=data.email)
         except NoResultFound:
-            logging.warning(f'Неверная почта или пароль для пользователя {data.email}')
+            logging.warning(f"Неверная почта или пароль для пользователя {data.email}")
             raise LoginErrorException
 
         if not self.verify_password(data.password, user.hashed_password):
-            logging.warning(f'Неверная почта или пароль для пользователя {data.email}')
+            logging.warning(f"Неверная почта или пароль для пользователя {data.email}")
             raise LoginErrorException
 
         token = self.create_access_token({"user_id": user.id})

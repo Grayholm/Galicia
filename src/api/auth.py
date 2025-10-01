@@ -1,8 +1,12 @@
 from fastapi import APIRouter, Response, HTTPException
 
 from src.api.dependencies import DBDep
-from src.exceptions import NicknameIsEmptyException, EmailIsAlreadyRegisteredException, RegisterErrorException, \
-    LoginErrorException
+from src.exceptions import (
+    NicknameIsEmptyException,
+    EmailIsAlreadyRegisteredException,
+    RegisterErrorException,
+    LoginErrorException,
+)
 from src.schemas.users import UserRequestAddRegister, UserLogin
 from src.services.auth import AuthService
 from src.utils.auth_utils import UserIdDep
@@ -20,7 +24,7 @@ async def register_user(data: UserRequestAddRegister, db: DBDep):
     except EmailIsAlreadyRegisteredException:
         raise HTTPException(status_code=409, detail="Email уже используется")
     except RegisterErrorException:
-        raise HTTPException(status_code=400, detail='Ошибка регистрации')
+        raise HTTPException(status_code=400, detail="Ошибка регистрации")
     return user
 
 

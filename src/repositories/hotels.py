@@ -18,8 +18,10 @@ class HotelsRepository(BaseRepository):
     mapper = HotelDataMapper
 
     async def get_hotels_by_time(self, title, location, limit, offset, date_from, date_to):
-        logging.debug(f"Searching hotels: title='{title}', location='{location}', "
-                      f"dates={date_from} to {date_to}, limit={limit}, offset={offset}")
+        logging.debug(
+            f"Searching hotels: title='{title}', location='{location}', "
+            f"dates={date_from} to {date_to}, limit={limit}, offset={offset}"
+        )
 
         try:
             if date_from >= date_to:
@@ -29,7 +31,9 @@ class HotelsRepository(BaseRepository):
             rooms_ids = get_rooms_ids_for_booking(date_from, date_to)
 
             hotels_ids = (
-                select(RoomsModel.hotel_id).select_from(RoomsModel).where(RoomsModel.id.in_(rooms_ids))
+                select(RoomsModel.hotel_id)
+                .select_from(RoomsModel)
+                .where(RoomsModel.id.in_(rooms_ids))
             )
 
             query = select(self.model).where(self.model.id.in_(hotels_ids))
@@ -48,15 +52,17 @@ class HotelsRepository(BaseRepository):
             hotels_data = result.unique().scalars().all()
 
             if not hotels_data:
-                logging.info(f"No hotels found for criteria: title='{title}', location='{location}'")
+                logging.info(
+                    f"No hotels found for criteria: title='{title}', location='{location}'"
+                )
                 raise ObjectNotFoundException("Отели не найдены")
 
-            hotels = [
-                self.mapper.map_to_domain_entity(model) for model in hotels_data
-            ]
+            hotels = [self.mapper.map_to_domain_entity(model) for model in hotels_data]
 
-            logging.info(f"Found {len(hotels)} hotels for criteria: "
-                         f"title='{title}', location='{location}', dates={date_from} to {date_to}")
+            logging.info(
+                f"Found {len(hotels)} hotels for criteria: "
+                f"title='{title}', location='{location}', dates={date_from} to {date_to}"
+            )
 
             return hotels
 

@@ -11,7 +11,7 @@ from src.utils.db_manager import DBManager
 
 @celery_instance.task(name="resize_image")
 def resize_image(image_path: str, hotel_or_room: str, hotel_id: int):
-    logging.debug(f'Вызывается функция image_path с {image_path}')
+    logging.debug(f"Вызывается функция image_path с {image_path}")
     sizes = [1000, 500, 200]
     output_folder = f"src/images/{hotel_or_room}/{hotel_id}"
 

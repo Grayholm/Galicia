@@ -11,6 +11,7 @@ class Image(ImageAdd):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class HotelImageAdd(BaseModel):
     hotel_id: int
     image_id: int

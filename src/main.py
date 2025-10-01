@@ -42,11 +42,14 @@ app.include_router(router_bookings)
 app.include_router(router_facilities)
 app.include_router(router_images)
 
+
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc: RequestValidationError, ):
+async def validation_exception_handler(
+    request,
+    exc: RequestValidationError,
+):
     return JSONResponse(
-        status_code=400,
-        content={"detail": "Поля не должны быть пустыми и должны быть строкой"}
+        status_code=400, content={"detail": "Поля не должны быть пустыми и должны быть строкой"}
     )
 
 

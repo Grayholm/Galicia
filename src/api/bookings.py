@@ -1,7 +1,11 @@
 from fastapi import APIRouter, HTTPException
 
 from src.api.dependencies import DBDep
-from src.exceptions import AvailableRoomNotFoundException, ObjectNotFoundException, RoomNotFoundHTTPException
+from src.exceptions import (
+    AvailableRoomNotFoundException,
+    ObjectNotFoundException,
+    RoomNotFoundHTTPException,
+)
 from src.schemas.bookings import BookingAddRequest
 from src.services.bookings import BookingService
 from src.utils.auth_utils import UserIdDep
@@ -38,7 +42,7 @@ async def add_booking(user_id: UserIdDep, db: DBDep, data: BookingAddRequest):
     except ObjectNotFoundException:
         raise RoomNotFoundHTTPException
     except AvailableRoomNotFoundException:
-        raise HTTPException(status_code=409, detail='На выбранные даты нет свободных номеров')
+        raise HTTPException(status_code=409, detail="На выбранные даты нет свободных номеров")
 
     return {"status": "OK", "data": result}
 

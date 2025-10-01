@@ -2,8 +2,16 @@ from datetime import date
 from fastapi import APIRouter, HTTPException, Body, Query
 
 from src.api.dependencies import DBDep, RoomsFilterDep
-from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, HotelNotFoundHTTPException, \
-    RoomNotFoundHTTPException, HotelNotFoundException, RoomNotFoundException, DataIsEmptyException, DataIntegrityError
+from src.exceptions import (
+    InvalidDateRangeError,
+    ObjectNotFoundException,
+    HotelNotFoundHTTPException,
+    RoomNotFoundHTTPException,
+    HotelNotFoundException,
+    RoomNotFoundException,
+    DataIsEmptyException,
+    DataIntegrityError,
+)
 from src.schemas.rooms import RoomAddRequest, RoomUpdateRequest
 from src.services.rooms import RoomService
 
@@ -21,7 +29,7 @@ async def get_rooms_by_filter(
     try:
         result = await RoomService(db).get_rooms_by_filter(hotel_id, filters, date_from, date_to)
     except InvalidDateRangeError:
-        raise HTTPException(status_code=400, detail='Дата заезда позже дата выезда')
+        raise HTTPException(status_code=400, detail="Дата заезда позже дата выезда")
     except ObjectNotFoundException:
         raise RoomNotFoundHTTPException
 
@@ -62,7 +70,7 @@ async def create_room(
     except HotelNotFoundException:
         raise HotelNotFoundHTTPException
     except ValueError:
-        raise HTTPException(status_code=400, detail='Название не может быть пустым')
+        raise HTTPException(status_code=400, detail="Название не может быть пустым")
 
     return {"Номер добавлен": room}
 
@@ -81,7 +89,9 @@ async def update_room(
     data: RoomUpdateRequest = Body(),
 ):
     try:
-        updated_room = await RoomService(db).update_room(hotel_id, room_id, f_ids_to_add, f_ids_to_dlt, data)
+        updated_room = await RoomService(db).update_room(
+            hotel_id, room_id, f_ids_to_add, f_ids_to_dlt, data
+        )
     except DataIsEmptyException:
         raise HTTPException(status_code=400, detail="Отсутствуют данные для обновления")
     except RoomNotFoundException:
@@ -106,11 +116,13 @@ async def partially_update_hotel(
     data: RoomUpdateRequest | None = Body(),
 ):
     try:
-        partially_updated_room = await RoomService(db).partially_update_room(hotel_id, room_id, f_ids_to_add, f_ids_to_dlt, data)
+        partially_updated_room = await RoomService(db).partially_update_room(
+            hotel_id, room_id, f_ids_to_add, f_ids_to_dlt, data
+        )
     except DataIsEmptyException:
         raise HTTPException(status_code=400, detail="Отсутствуют данные для обновления")
     except DataIntegrityError:
-        raise HTTPException(status_code=400, detail='Данные значения facilities не найдены в БД')
+        raise HTTPException(status_code=400, detail="Данные значения facilities не найдены в БД")
 
     return {"message": f"Информация обновлена = {partially_updated_room}"}
 

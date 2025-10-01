@@ -14,6 +14,7 @@ async def add_facility(facility: FacilityAdd, db: DBDep):
     added_facility = await FacilityService(db).add_facility(facility)
     return {"status": "Ok", "data": added_facility}
 
+
 @router.get("")
 @cache(expire=10)
 async def get_facilities(db: DBDep):

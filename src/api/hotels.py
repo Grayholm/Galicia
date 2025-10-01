@@ -1,8 +1,13 @@
 from datetime import date
 
 
-from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, HotelNotFoundHTTPException, \
-    DataIsEmptyException, ValidationServiceError
+from src.exceptions import (
+    InvalidDateRangeError,
+    ObjectNotFoundException,
+    HotelNotFoundHTTPException,
+    DataIsEmptyException,
+    ValidationServiceError,
+)
 from src.schemas.hotels import HotelAdd, UpdateHotel
 from fastapi import Query, APIRouter, Body, HTTPException
 from src.api.dependencies import DBDep, PaginationDep
@@ -20,11 +25,10 @@ async def get_hotels(
     date_from: date = Query(examples=["2025-09-15"]),
     date_to: date = Query(examples=["2025-09-20"]),
 ):
-
     try:
         result = await HotelService(db).get_hotels(pagination, title, location, date_from, date_to)
     except InvalidDateRangeError:
-        raise HTTPException(status_code=400, detail='Дата заезда позже дата выезда')
+        raise HTTPException(status_code=400, detail="Дата заезда позже дата выезда")
     except ObjectNotFoundException:
         raise HotelNotFoundHTTPException
 
@@ -72,14 +76,15 @@ async def update_hotel(hotel_id: int, hotel: HotelAdd, db: DBDep):
     try:
         updated_hotel = await HotelService(db).update_hotel(hotel, hotel_id=hotel_id)
     except DataIsEmptyException:
-        raise HTTPException(status_code=400, detail='Отсутствуют данные для обновления')
+        raise HTTPException(status_code=400, detail="Отсутствуют данные для обновления")
     except ValidationServiceError:
-        raise HTTPException(status_code=400, detail='Поля не должны быть пустыми и должны быть строкой')
+        raise HTTPException(
+            status_code=400, detail="Поля не должны быть пустыми и должны быть строкой"
+        )
     except ObjectNotFoundException:
         raise HotelNotFoundHTTPException
     if updated_hotel is not None:
         return {"message": f"Информация обновлена = {updated_hotel}"}
-
 
 
 @router.patch(
@@ -91,11 +96,12 @@ async def partially_update_item(hotel_id: int, db: DBDep, hotel: UpdateHotel | N
     try:
         edited_hotel = await HotelService(db).partially_update_item(hotel_id=hotel_id, hotel=hotel)
     except DataIsEmptyException:
-        raise HTTPException(status_code=400, detail='Отсутствуют данные для обновления')
+        raise HTTPException(status_code=400, detail="Отсутствуют данные для обновления")
     except ValidationServiceError:
-        raise HTTPException(status_code=400, detail="Поля не должны быть пустыми и должны быть строкой")
+        raise HTTPException(
+            status_code=400, detail="Поля не должны быть пустыми и должны быть строкой"
+        )
     except ObjectNotFoundException:
         raise HotelNotFoundHTTPException
     if edited_hotel is not None:
         return {"message": f"Информация обновлена = {edited_hotel}"}
-

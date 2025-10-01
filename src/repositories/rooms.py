@@ -17,7 +17,9 @@ class RoomsRepository(BaseRepository):
     mapper = RoomDataMapper
 
     async def get_rooms(self, hotel_id, filters, date_from, date_to):
-        logging.debug(f"Getting rooms for hotel {hotel_id}, dates {date_from} to {date_to}, filters: {filters}")
+        logging.debug(
+            f"Getting rooms for hotel {hotel_id}, dates {date_from} to {date_to}, filters: {filters}"
+        )
 
         try:
             if date_from >= date_to:
@@ -60,7 +62,9 @@ class RoomsRepository(BaseRepository):
         logging.debug(f"Getting room with filters: {filter}")
 
         try:
-            query = select(self.model).filter_by(**filter).options(joinedload(self.model.facilities))
+            query = (
+                select(self.model).filter_by(**filter).options(joinedload(self.model.facilities))
+            )
             result = await self.session.execute(query)
 
             room = result.unique().scalar_one()
@@ -74,18 +78,23 @@ class RoomsRepository(BaseRepository):
 
     async def update(self, data, f_ids_add, f_ids_dlt, **filters):
         room_id = filters.get("id")
-        logging.debug(f"Updating room {room_id}, add facilities: {f_ids_add}, delete facilities: {f_ids_dlt}")
+        logging.debug(
+            f"Updating room {room_id}, add facilities: {f_ids_add}, delete facilities: {f_ids_dlt}"
+        )
 
         try:
-            if data and (hasattr(data, 'model_dump') or data):
-                if hasattr(data, 'model_dump'):
+            if data and (hasattr(data, "model_dump") or data):
+                if hasattr(data, "model_dump"):
                     update_data = data.model_dump(exclude_unset=True)
                 else:
                     update_data = data
 
                 if update_data:
                     update_stmt = (
-                        update(self.model).filter_by(**filters).values(**update_data).returning(self.model)
+                        update(self.model)
+                        .filter_by(**filters)
+                        .values(**update_data)
+                        .returning(self.model)
                     )
                     result = await self.session.execute(update_stmt)
                     edited_room = result.scalar_one()
@@ -143,7 +152,6 @@ class RoomsRepository(BaseRepository):
         except ObjectNotFoundException:
             raise
 
-
     async def delete_room(self, hotel_id: int, room_id: int) -> None:
         """
         Удаление комнаты с предварительным удалением связанных facilities
@@ -156,8 +164,7 @@ class RoomsRepository(BaseRepository):
             logging.debug(f"Deleted facilities links for room {room_id}")
 
             delete_room_query = delete(self.model).where(
-                self.model.id == room_id,
-                self.model.hotel_id == hotel_id
+                self.model.id == room_id, self.model.hotel_id == hotel_id
             )
             result = await self.session.execute(delete_room_query)
 

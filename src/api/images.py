@@ -8,6 +8,7 @@ from src.services.images import BASE_UPLOAD_DIR, ImageService
 router = APIRouter()
 router.mount("/static", StaticFiles(directory=str(BASE_UPLOAD_DIR)), name="static")
 
+
 @router.post("/hotels/{hotel_id}/images")
 async def upload_hotel_image(
     db: DBDep,
@@ -20,6 +21,7 @@ async def upload_hotel_image(
         raise HTTPException(status_code=404, detail=str(e))
     except ServiceUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
+
 
 @router.delete("/images/{image_id}")
 async def delete_image(

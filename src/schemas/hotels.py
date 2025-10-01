@@ -8,21 +8,21 @@ class HotelAdd(BaseModel):
     title: str
     location: str
 
-    @field_validator('title', 'location')
+    @field_validator("title", "location")
     @classmethod
     def validate_not_only_digits(cls, v: str) -> str:
         v = v.strip()
 
         if not v:
-            raise ValueError('Field cannot be empty')
+            raise ValueError("Field cannot be empty")
 
         # Проверяем, что строка состоит не только из цифр
         if v.isdigit():
-            raise ValueError('Field cannot contain only digits')
+            raise ValueError("Field cannot contain only digits")
 
         # Или более строгая проверка - должна быть хотя бы одна буква
         if not any(c.isalpha() for c in v):
-            raise ValueError('Field must contain at least one letter')
+            raise ValueError("Field must contain at least one letter")
 
         return v
 

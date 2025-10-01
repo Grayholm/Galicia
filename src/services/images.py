@@ -145,19 +145,18 @@ class ImageService(BaseService):
         await self.db.commit()
 
         resize_image.delay(
-            image_path=file_info["file_path"],
-            hotel_or_room="hotels",
-            hotel_id=hotel_id
+            image_path=file_info["file_path"], hotel_or_room="hotels", hotel_id=hotel_id
         )
 
-        logging.info(f"Image uploaded successfully for hotel {hotel_id}, image_id: {image_entity.id}")
+        logging.info(
+            f"Image uploaded successfully for hotel {hotel_id}, image_id: {image_entity.id}"
+        )
 
         return {
             "message": "File uploaded successfully",
             "url": self._get_file_url(file_info["file_path"]),
-            "image_id": image_entity.id
+            "image_id": image_entity.id,
         }
-
 
     async def delete_image(self, image_id: int) -> dict:
         """Полная бизнес-логика удаления изображения"""
@@ -173,7 +172,9 @@ class ImageService(BaseService):
             # Удаляем файл с диска
             delete_success = self._delete_file_from_disk(image.url)
             if not delete_success:
-                logging.warning(f"File deletion failed for image {image_id}, but continuing with DB cleanup")
+                logging.warning(
+                    f"File deletion failed for image {image_id}, but continuing with DB cleanup"
+                )
 
             # Удаляем связи и запись из БД
             await self.db.hotels_images.delete(image_id=image_id)
@@ -189,5 +190,3 @@ class ImageService(BaseService):
         except Exception as e:
             logging.error(f"Image deletion failed for image {image_id}: {e}")
             raise ServiceUnavailableError("Image upload failed due to technical issues")
-
-

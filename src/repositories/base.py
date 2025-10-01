@@ -51,15 +51,11 @@ class BaseRepository:
             result = await self.session.execute(add_stmt)
             created_data = result.scalar_one_or_none()
         except IntegrityError as e:
-            logging.exception(
-                f"Ошибка добавления данных в БД, входные данные={data}"
-            )
+            logging.exception(f"Ошибка добавления данных в БД, входные данные={data}")
             if isinstance(e.orig.__cause__, UniqueViolationError):
                 raise ObjectNotFoundException
             else:
-                logging.exception(
-                    f'Незнакомая ошибка, входные данные={data}'
-                )
+                logging.exception(f"Незнакомая ошибка, входные данные={data}")
                 raise e
         created = self.mapper.map_to_domain_entity(created_data)
 
@@ -86,7 +82,6 @@ class BaseRepository:
             raise ObjectNotFoundException
         except ValidationError:
             raise ValidationServiceError
-
 
         return edited
 

@@ -2,19 +2,24 @@ from datetime import date
 
 
 from src.api.dependencies import PaginationDep
-from src.exceptions import DataIsEmptyException, ObjectNotFoundException, HotelNotFoundException, ValidationServiceError
+from src.exceptions import (
+    DataIsEmptyException,
+    ObjectNotFoundException,
+    HotelNotFoundException,
+    ValidationServiceError,
+)
 from src.schemas.hotels import HotelAdd, UpdateHotel
 from src.services.base import BaseService
 
 
 class HotelService(BaseService):
     async def get_hotels(
-            self,
-            pagination: PaginationDep,
-            title: str | None,
-            location: str | None,
-            date_from: date,
-            date_to: date,
+        self,
+        pagination: PaginationDep,
+        title: str | None,
+        location: str | None,
+        date_from: date,
+        date_to: date,
     ):
         return await self.db.hotels.get_hotels_by_time(
             title,
@@ -24,7 +29,6 @@ class HotelService(BaseService):
             date_from,
             date_to,
         )
-
 
     async def get_one_hotel_by_id(self, hotel_id: int):
         return await self.db.hotels.get_one_hotel_by_id(hotel_id)

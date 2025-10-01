@@ -3,8 +3,13 @@ from datetime import date
 from sqlalchemy.exc import IntegrityError
 
 from src.api.dependencies import RoomsFilterDep
-from src.exceptions import ObjectNotFoundException, RoomNotFoundException, DataIsEmptyException, DataIntegrityError, \
-    HotelNotFoundException
+from src.exceptions import (
+    ObjectNotFoundException,
+    RoomNotFoundException,
+    DataIsEmptyException,
+    DataIntegrityError,
+    HotelNotFoundException,
+)
 from src.schemas.facilities import RoomFacilityAdd
 from src.schemas.rooms import RoomAddRequest, RoomAdd, RoomUpdateRequest, RoomUpdate
 from src.services.base import BaseService
@@ -13,11 +18,11 @@ from src.services.hotels import HotelService
 
 class RoomService(BaseService):
     async def get_rooms_by_filter(
-            self,
-            hotel_id: int,
-            filters: RoomsFilterDep,
-            date_from: date,
-            date_to: date,
+        self,
+        hotel_id: int,
+        filters: RoomsFilterDep,
+        date_from: date,
+        date_to: date,
     ):
         return await self.db.rooms.get_rooms(hotel_id, filters, date_from, date_to)
 
@@ -55,12 +60,12 @@ class RoomService(BaseService):
         await self.db.commit()
 
     async def update_room(
-            self,
-            hotel_id: int,
-            room_id: int,
-            f_ids_to_add: list[int],
-            f_ids_to_dlt: list[int],
-            data: RoomUpdateRequest,
+        self,
+        hotel_id: int,
+        room_id: int,
+        f_ids_to_add: list[int],
+        f_ids_to_dlt: list[int],
+        data: RoomUpdateRequest,
     ):
         data_dict = data.model_dump(exclude_unset=True) if data else {}
 
@@ -84,12 +89,12 @@ class RoomService(BaseService):
         return updated_room
 
     async def partially_update_room(
-            self,
-            hotel_id: int,
-            room_id: int,
-            f_ids_to_add: list[int],
-            f_ids_to_dlt: list[int],
-            data: RoomUpdateRequest | None,  # добавил | None
+        self,
+        hotel_id: int,
+        room_id: int,
+        f_ids_to_add: list[int],
+        f_ids_to_dlt: list[int],
+        data: RoomUpdateRequest | None,  # добавил | None
     ):
         update_dict = data.model_dump(exclude_unset=True) if data else {}
 
