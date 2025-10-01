@@ -123,7 +123,7 @@ class ImageService(BaseService):
 
         # Проверяем существование отеля
         try:
-            hotel = await self.db.hotels.get_one(id=hotel_id)
+            await self.db.hotels.get_one(id=hotel_id)
         except ObjectNotFoundException:
             raise ObjectNotFoundException(f"Hotel with id {hotel_id} not found")
 

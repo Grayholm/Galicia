@@ -1,17 +1,15 @@
+# ruff: noqa: E402
 import sys
 from pathlib import Path
 import logging
 
 from fastapi.exceptions import RequestValidationError
-from pydantic import ValidationError
 from starlette.responses import JSONResponse
 
-# Настройка пути в самом начале
 sys.path.append(str(Path(__file__).parent.parent))
 
 logging.basicConfig(level=logging.INFO)
 
-# Затем остальные импорты
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import uvicorn
@@ -31,7 +29,7 @@ from src.init import redis_manager
 async def lifespan(app: FastAPI):
     await redis_manager.connect()
     FastAPICache.init(RedisBackend(redis_manager.redis), prefix="fastapi-cache")
-    logging.info(f"FastAPI Cache connection initialized")
+    logging.info("FastAPI Cache connection initialized")
     yield
     await redis_manager.close()
 

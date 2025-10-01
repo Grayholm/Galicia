@@ -1,6 +1,5 @@
 from datetime import date
 from fastapi import APIRouter, HTTPException, Body, Query
-from pydantic import ValidationError
 
 from src.api.dependencies import DBDep, RoomsFilterDep
 from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, HotelNotFoundHTTPException, \

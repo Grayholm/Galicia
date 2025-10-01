@@ -152,7 +152,7 @@ async def test_update_room(
         "data": data
     }
 
-    logging.debug(f"ДЕБАГ ТЕСТА:")
+    logging.debug("ДЕБАГ ТЕСТА:")
     logging.debug(f"hotel_id: {hotel_id}")
     logging.debug(f"room_id: {room_id}")
     logging.debug(f"f_ids_to_add: {f_ids_to_add}")
@@ -165,7 +165,7 @@ async def test_update_room(
         json=body
     )
 
-    logging.debug(f"ОТВЕТ СЕРВЕРА:")
+    logging.debug("ОТВЕТ СЕРВЕРА:")
     logging.debug(f"Status: {response.status_code}")
     logging.debug(f"Body: {response.text}")
 

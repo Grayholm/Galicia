@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from src.schemas.images import Image

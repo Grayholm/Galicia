@@ -84,7 +84,7 @@ class BaseRepository:
             edited = self.mapper.map_to_domain_entity(object)
         except NoResultFound:
             raise ObjectNotFoundException
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationServiceError
 
 

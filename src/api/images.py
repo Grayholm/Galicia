@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, Depends, UploadFile, HTTPException
+from fastapi import APIRouter, File, UploadFile, HTTPException
 from fastapi.staticfiles import StaticFiles
 
 from src.api.dependencies import DBDep

@@ -1,6 +1,5 @@
 from datetime import date
 
-from fastapi.exceptions import RequestValidationError
 
 from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, HotelNotFoundHTTPException, \
     DataIsEmptyException, ValidationServiceError

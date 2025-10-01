@@ -112,7 +112,7 @@ class RoomService(BaseService):
                 id=room_id,
                 hotel_id=hotel_id,
             )
-        except IntegrityError as e:
+        except IntegrityError:
             raise DataIntegrityError
         await self.db.commit()
 
