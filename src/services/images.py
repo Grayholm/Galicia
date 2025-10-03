@@ -9,7 +9,12 @@ from src.schemas.images import ImageAdd
 from src.services.base import BaseService
 from src.tasks.tasks import resize_image
 
-BASE_UPLOAD_DIR = Path(r"E:\proj\src\images")
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent  # /app/src
+BASE_UPLOAD_DIR = BASE_DIR / "images"
+
+BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class ImageService(BaseService):
