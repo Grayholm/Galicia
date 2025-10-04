@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  bookings_db:
+    image: postgres:17
+    container_name: bookings_db
+    environment:
+      POSTGRES_USER: guest
+      POSTGRES_PASSWORD: guest
+      POSTGRES_DB: bookings
+    ports:
+      - "6432:5432"
+    volumes:
+      - pg-bookings-data:/var/lib/postgresql/data
+    networks:
+      - myNetwork
+
+  bookings_cache:
+    image: redis
+    container_name: bookings_cache
+    ports:
+      - "7379:6379"
+    networks:
+      - myNetwork
+
+  bookings_back:
+    image: bookings_app
+    container_name: bookings_back
+    ports:
+      - "7777:8000"
+    networks:
+      - myNetwork
+
+
+volumes:
+  pg-bookings-data:
+
+networks:
+  myNetwork:
+    external: true
