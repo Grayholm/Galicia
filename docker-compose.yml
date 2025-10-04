@@ -3,16 +3,14 @@ services:
   bookings_db:
     image: postgres:17
     container_name: bookings_db
-    environment:
-      POSTGRES_USER: guest
-      POSTGRES_PASSWORD: guest
-      POSTGRES_DB: bookings
     ports:
       - "6432:5432"
     volumes:
       - pg-bookings-data:/var/lib/postgresql/data
     networks:
       - myNetwork
+    env_file:
+      - .env
 
   bookings_cache:
     image: redis
@@ -21,14 +19,41 @@ services:
       - "7379:6379"
     networks:
       - myNetwork
+    env_file:
+      - .env
 
-  bookings_back:
-    image: bookings_app
+#  booking_celery_worker:
+#    container_name: booking_celery_worker
+#    build:
+#      context: .
+#    networks:
+#      - myNetwork
+#    env_file:
+#      - .env
+#    command:
+#      - celery --app=src.tasks.celery_app:celery_instance worker -l INFO
+#
+#  booking_celery_beat:
+#    container_name: booking_celery_beat
+#    build:
+#      context: .
+#    networks:
+#      - myNetwork
+#    env_file:
+#      - .env
+#    command:
+#      - celery --app=src.tasks.celery_app:celery_instance beat -l INFO
+
+  bookings_back_service:
     container_name: bookings_back
+    build:
+      context: .
     ports:
       - "7777:8000"
     networks:
       - myNetwork
+    env_file:
+      - .env
 
 
 volumes:

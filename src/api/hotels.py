@@ -1,4 +1,5 @@
 from datetime import date
+from fastapi_cache.decorator import cache
 
 
 from src.exceptions import (
@@ -17,6 +18,7 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
 @router.get("")
+@cache(expire=100)
 async def get_hotels(
     pagination: PaginationDep,
     db: DBDep,

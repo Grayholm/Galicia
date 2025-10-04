@@ -20,7 +20,7 @@ class Settings(BaseSettings):
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
 
     @property
-    def db_url(self) -> SecretStr:
+    def db_url(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     JWT_SECRET_KEY: SecretStr = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"

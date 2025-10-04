@@ -11,4 +11,4 @@ RUN pip install -r requirements.txt
 # Копируем код
 COPY . .
 
-CMD ["python", "src/main.py"]
+CMD alembic upgrade head; python src/main.py
