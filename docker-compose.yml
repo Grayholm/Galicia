@@ -22,27 +22,31 @@ services:
     env_file:
       - .env
 
-#  booking_celery_worker:
-#    container_name: booking_celery_worker
-#    build:
-#      context: .
-#    networks:
-#      - myNetwork
-#    env_file:
-#      - .env
-#    command:
-#      - celery --app=src.tasks.celery_app:celery_instance worker -l INFO
-#
-#  booking_celery_beat:
-#    container_name: booking_celery_beat
-#    build:
-#      context: .
-#    networks:
-#      - myNetwork
-#    env_file:
-#      - .env
-#    command:
-#      - celery --app=src.tasks.celery_app:celery_instance beat -l INFO
+  booking_celery_worker:
+    container_name: booking_celery_worker
+    build:
+      context: .
+    networks:
+      - myNetwork
+    env_file:
+      - .env
+    depends_on:
+      - bookings_db
+      - bookings_cache
+    command: celery --app=src.tasks.celery_app:celery_instance worker -l INFO
+
+  booking_celery_beat:
+    container_name: booking_celery_beat
+    build:
+      context: .
+    networks:
+      - myNetwork
+    env_file:
+      - .env
+    depends_on:
+      - bookings_db
+      - bookings_cache
+    command: celery --app=src.tasks.celery_app:celery_instance beat -l INFO
 
   bookings_back_service:
     container_name: bookings_back

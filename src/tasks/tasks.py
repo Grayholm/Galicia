@@ -1,7 +1,8 @@
 import asyncio
 import logging
 
-from src.db import async_session_maker
+from src.db import async_session_maker_null_pool, SyncSessionLocal
+from src.repositories.bookings import BookingsRepository
 from src.tasks.celery_app import celery_instance
 from PIL import Image
 import os
@@ -33,12 +34,15 @@ def resize_image(image_path: str, hotel_or_room: str, hotel_id: int):
     logging.info(f"Изображение сохранено в следующих размерах: {sizes} в папке {output_folder}")
 
 
-async def get_bookings_with_today_checkin_helper():
-    async with DBManager(session_factory=async_session_maker) as db:
-        bookings = await db.bookings.get_bookings_with_today_checkin()
-        logging.debug(f"{bookings=}")
 
+def get_bookings_with_today_checkin_sync():
+    with SyncSessionLocal() as session:
+        bookings_repo = BookingsRepository(session)
+        bookings = bookings_repo.get_bookings_with_today_checkin()
+        return bookings
 
 @celery_instance.task(name="booking_today_checkin")
 def send_emails_to_users_with_today_checkin():
-    asyncio.run(get_bookings_with_today_checkin_helper())
+    bookings = get_bookings_with_today_checkin_sync()
+    # обработка бронирований
+    return bookings

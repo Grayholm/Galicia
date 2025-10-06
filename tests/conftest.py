@@ -26,13 +26,13 @@ async def get_db_null_pool():
 
 @pytest.fixture(scope="function")
 async def db():
-    async with DBManager(session_factory=async_session_maker()) as db:
+    async with DBManager(session_factory=async_session_maker) as db:
         yield db
 
 
 @pytest.fixture(scope="module")
 async def db_module():
-    async with DBManager(session_factory=async_session_maker()) as _db:
+    async with DBManager(session_factory=async_session_maker) as _db:
         yield _db
 
 
@@ -73,7 +73,7 @@ async def setup_database(check_test_mode):
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
-    async with DBManager(session_factory=async_session_maker()) as db_:
+    async with DBManager(session_factory=async_session_maker) as db_:
         await add_hotels_from_json("tests/mock_hotels.json", db_)
         await add_rooms_from_json("tests/mock_rooms.json", db_)
 

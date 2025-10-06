@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import Query, Depends
 from pydantic import BaseModel, Field
 
-from utils.db_manager import DBManager
+from src.utils.db_manager import DBManager
 from src.db import async_session_maker
 
 
@@ -25,7 +25,7 @@ RoomsFilterDep = Annotated[ItemFilter, Depends()]
 
 
 async def get_db():
-    async with DBManager(session_factory=async_session_maker()) as db:
+    async with DBManager(session_factory=async_session_maker) as db:
         yield db
 
 
