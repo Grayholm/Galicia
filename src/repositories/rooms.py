@@ -4,6 +4,7 @@ from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import NoResultFound
 
 from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, RoomNotFoundException
+from src.models import BookingsModel
 from src.models.facilities import RoomsFacilitiesModel
 from src.repositories.mappers.mappers import RoomDataMapper, RoomWithRelsDataMapper
 from src.repositories.utils import get_rooms_ids_for_booking
@@ -162,6 +163,12 @@ class RoomsRepository(BaseRepository):
             )
             await self.session.execute(delete_facilities_query)
             logging.debug(f"Deleted facilities links for room {room_id}")
+
+            delete_bookings_query = delete(BookingsModel).where(
+                BookingsModel.room_id == room_id
+            )
+            await self.session.execute(delete_bookings_query)
+            logging.debug(f"Deleted bookings links for room {room_id}")
 
             delete_room_query = delete(self.model).where(
                 self.model.id == room_id, self.model.hotel_id == hotel_id
