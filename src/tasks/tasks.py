@@ -1,20 +1,22 @@
-import asyncio
 import logging
+from pathlib import Path
 
-from src.db import async_session_maker_null_pool, SyncSessionLocal
+from src.db import SyncSessionLocal
 from src.repositories.bookings import BookingsRepository
 from src.tasks.celery_app import celery_instance
 from PIL import Image
 import os
 
-from src.utils.db_manager import DBManager
-
+UPLOAD_DIR = Path("/app/src/images")
 
 @celery_instance.task(name="resize_image")
-def resize_image(image_path: str, hotel_or_room: str, hotel_id: int):
-    logging.debug(f"Вызывается функция image_path с {image_path}")
+def resize_image(image_filename: str, hotels_or_rooms: str, hotel_id: int):
+    logging.debug(f"Вызывается функция image_path с {image_filename}")
     sizes = [1000, 500, 200]
-    output_folder = f"src/images/{hotel_or_room}/{hotel_id}"
+    output_folder = f"src/images/{hotels_or_rooms}/{hotel_id}"
+    os.makedirs(output_folder, exist_ok=True)
+
+    image_path = UPLOAD_DIR / hotels_or_rooms / str(hotel_id) / image_filename
 
     img = Image.open(image_path)
 
@@ -32,7 +34,6 @@ def resize_image(image_path: str, hotel_or_room: str, hotel_id: int):
 
         img_resized.save(output_path)
     logging.info(f"Изображение сохранено в следующих размерах: {sizes} в папке {output_folder}")
-
 
 
 def get_bookings_with_today_checkin_sync():

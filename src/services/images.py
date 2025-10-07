@@ -11,7 +11,7 @@ from src.tasks.tasks import resize_image
 
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent  # /app/src
+BASE_DIR = Path("/app/src")  # /app/src
 BASE_UPLOAD_DIR = BASE_DIR / "images"
 
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -150,7 +150,7 @@ class ImageService(BaseService):
         await self.db.commit()
 
         resize_image.delay(
-            image_path=file_info["file_path"], hotel_or_room="hotels", hotel_id=hotel_id
+            image_filename=file_info["file_name"], hotels_or_rooms="hotels", hotel_id=hotel_id
         )
 
         logging.info(

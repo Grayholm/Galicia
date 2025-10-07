@@ -24,8 +24,11 @@ services:
 
   booking_celery_worker:
     container_name: booking_celery_worker
+    image: bookings_app
     build:
       context: .
+    volumes:
+      - ./src/images:/app/src/images
     networks:
       - myNetwork
     env_file:
@@ -37,8 +40,11 @@ services:
 
   booking_celery_beat:
     container_name: booking_celery_beat
+    image: bookings_app
     build:
       context: .
+    volumes:
+      - ./src/images:/app/src/images
     networks:
       - myNetwork
     env_file:
@@ -50,10 +56,13 @@ services:
 
   bookings_back_service:
     container_name: bookings_back
+    image: bookings_app
     build:
       context: .
     ports:
       - "7777:8000"
+    volumes:
+      - ./src/images:/app/src/images
     networks:
       - myNetwork
     env_file:
