@@ -22,7 +22,6 @@ services:
     env_file:
       - .env
     depends_on:
-      - bookings_db
       - bookings_cache
     command: celery --app=src.tasks.celery_app:celery_instance worker -l INFO
 
@@ -38,7 +37,6 @@ services:
     env_file:
       - .env
     depends_on:
-      - bookings_db
       - bookings_cache
     command: celery --app=src.tasks.celery_app:celery_instance beat -l INFO
 
