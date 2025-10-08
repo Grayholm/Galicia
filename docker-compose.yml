@@ -9,6 +9,10 @@ services:
       - pg-bookings-data:/var/lib/postgresql/data
     networks:
       - myNetwork
+    environment:
+      - POSTGRES_USER=guest
+      - POSTGRES_PASSWORD=guestjsgnDGkl56nlf_fjkFg52
+      - POSTGRES_DB=bookings
     env_file:
       - .env
 
