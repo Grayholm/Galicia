@@ -1,17 +1,5 @@
 version: '3.8'
 services:
-  bookings_db:
-    image: postgres:17
-    container_name: bookings_db
-    ports:
-      - "6432:5432"
-    volumes:
-      - pg-bookings-data:/var/lib/postgresql/data
-    networks:
-      - myNetwork
-    env_file:
-      - .env
-
   bookings_cache:
     image: redis
     container_name: bookings_cache
@@ -34,7 +22,6 @@ services:
     env_file:
       - .env
     depends_on:
-      - bookings_db
       - bookings_cache
     command: celery --app=src.tasks.celery_app:celery_instance worker -l INFO
 
@@ -50,7 +37,6 @@ services:
     env_file:
       - .env
     depends_on:
-      - bookings_db
       - bookings_cache
     command: celery --app=src.tasks.celery_app:celery_instance beat -l INFO
 
