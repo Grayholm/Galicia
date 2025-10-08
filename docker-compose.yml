@@ -1,16 +1,16 @@
 version: '3.8'
 services:
-#  bookings_db:
-#    image: postgres:17
-#    container_name: bookings_db
-#    ports:
-#      - "6432:5432"
-#    volumes:
-#      - pg-bookings-data:/var/lib/postgresql/data
-#    networks:
-#      - myNetwork
-#    env_file:
-#      - .env
+  bookings_db:
+    image: postgres:17
+    container_name: bookings_db
+    ports:
+      - "6432:5432"
+    volumes:
+      - pg-bookings-data:/var/lib/postgresql/data
+    networks:
+      - myNetwork
+    env_file:
+      - .env
 
   bookings_cache:
     image: redis
