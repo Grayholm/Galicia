@@ -1,31 +1,5 @@
 version: '3.8'
 services:
-#  bookings_db:
-#    image: postgres:17
-#    container_name: bookings_db
-#    ports:
-#      - "6432:5432"
-#    volumes:
-#      - pg-bookings-data:/var/lib/postgresql/data
-#    networks:
-#      - myNetwork
-#    environment:
-#      - POSTGRES_USER=guest
-#      - POSTGRES_PASSWORD=guestjsgnDGkl56nlf_fjkFg52
-#      - POSTGRES_DB=bookings
-#    env_file:
-#      - .env
-#
-#  bookings_cache:
-#    image: redis
-#    container_name: bookings_cache
-#    ports:
-#      - "7379:6379"
-#    networks:
-#      - myNetwork
-#    env_file:
-#      - .env
-
   booking_celery_worker:
     container_name: booking_celery_worker
     image: bookings_app
@@ -37,9 +11,6 @@ services:
       - myNetwork
     env_file:
       - .env
-#    depends_on:
-#      - bookings_db
-#      - bookings_cache
     command: celery --app=src.tasks.celery_app:celery_instance worker -l INFO
 
   booking_celery_beat:
@@ -53,9 +24,6 @@ services:
       - myNetwork
     env_file:
       - .env
-#    depends_on:
-#      - bookings_db
-#      - bookings_cache
     command: celery --app=src.tasks.celery_app:celery_instance beat -l INFO
 
   bookings_back_service:
@@ -63,8 +31,8 @@ services:
     image: bookings_app
     build:
       context: .
-    ports:
-      - "7777:8000"
+#    ports:
+#      - "7777:8000"
     volumes:
       - ./src/images:/app/src/images
     networks:
