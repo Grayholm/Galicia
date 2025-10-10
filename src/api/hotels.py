@@ -14,10 +14,14 @@ from fastapi import Query, APIRouter, Body, HTTPException
 from src.api.dependencies import DBDep, PaginationDep
 from src.services.hotels import HotelService
 
-router = APIRouter(prefix="/hotels", tags=["Отели"])
+router = APIRouter(prefix="/hotels", tags=["Панель отелей"])
 
 
-@router.get("")
+@router.get(
+    "",
+    summary='Получение отелей по фильтрам',
+    description='Введите даты вашего пребывания и мы подберем для вас доступные отели',
+)
 @cache(expire=100)
 async def get_hotels(
     pagination: PaginationDep,
@@ -37,7 +41,11 @@ async def get_hotels(
     return result
 
 
-@router.get("/{hotel_id}")
+@router.get(
+    "/{hotel_id}",
+    summary='Получение отеля',
+    description='Получить отель по ID',
+)
 async def get_one_hotel_by_id(hotel_id: int, db: DBDep):
     try:
         return await HotelService(db).get_one_hotel_by_id(hotel_id)
@@ -45,7 +53,10 @@ async def get_one_hotel_by_id(hotel_id: int, db: DBDep):
         raise HotelNotFoundHTTPException
 
 
-@router.post("")
+@router.post(
+    "",
+    summary='Создать отель',
+)
 async def create_hotel(
     db: DBDep,
     hotel_data: HotelAdd = Body(
@@ -63,7 +74,11 @@ async def create_hotel(
     return {"status": "Ok", "data": created_hotel}
 
 
-@router.delete("/{hotel_id}")
+@router.delete(
+    "/{hotel_id}",
+    summary='Удалить отель',
+    description='Удаление отеля по ID',
+)
 async def delete_hotel(hotel_id: int, db: DBDep):
     deleted_hotel = await HotelService(db).delete_hotel(hotel_id)
 
@@ -73,7 +88,11 @@ async def delete_hotel(hotel_id: int, db: DBDep):
     return {"message": "Hotel with that ID is not found"}
 
 
-@router.put("/{hotel_id}")
+@router.put(
+    "/{hotel_id}",
+    summary="Полное обновление данных об отеле",
+    description="<h1>Тут мы полностью обновляем данные об отеле</h1>"
+)
 async def update_hotel(hotel_id: int, hotel: HotelAdd, db: DBDep):
     try:
         updated_hotel = await HotelService(db).update_hotel(hotel, hotel_id=hotel_id)
@@ -92,7 +111,7 @@ async def update_hotel(hotel_id: int, hotel: HotelAdd, db: DBDep):
 @router.patch(
     "/{hotel_id}",
     summary="Частичное обновление данных об отеле",
-    description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>",
+    description="<h1>Тут мы частично обновляем данные об отеле</h1>",
 )
 async def partially_update_item(hotel_id: int, db: DBDep, hotel: UpdateHotel | None = Body(None)):
     try:

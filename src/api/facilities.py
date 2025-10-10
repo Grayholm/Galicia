@@ -9,13 +9,19 @@ from src.services.facilities import FacilityService
 router = APIRouter(prefix="/facilities", tags=["Удобства"])
 
 
-@router.post("")
+@router.post(
+    "",
+    summary='Добавить удобства',
+)
 async def add_facility(facility: FacilityAdd, db: DBDep):
     added_facility = await FacilityService(db).add_facility(facility)
     return {"status": "Ok", "data": added_facility}
 
 
-@router.get("")
+@router.get(
+    "",
+    summary='Получить все доступные удобства',
+)
 @cache(expire=10)
 async def get_facilities(db: DBDep):
     return await FacilityService(db).get_facilities()

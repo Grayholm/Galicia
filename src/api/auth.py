@@ -15,7 +15,11 @@ from src.utils.auth_utils import UserIdDep
 router = APIRouter(prefix="/auth", tags=["Аутентификация и авторизация"])
 
 
-@router.post("/register")
+@router.post(
+    "/register",
+    summary='Регистрация',
+    description='Регистрация пользователя',
+)
 async def register_user(data: UserRequestAddRegister, db: DBDep):
     try:
         user = await AuthService(db).register_user(data)
@@ -28,7 +32,11 @@ async def register_user(data: UserRequestAddRegister, db: DBDep):
     return user
 
 
-@router.post("/login")
+@router.post(
+    "/login",
+    summary='Аутентификация',
+    description='Аутентификация пользователя',
+)
 async def login_user(data: UserLogin, response: Response, db: DBDep):
     try:
         access_token = await AuthService(db).login_and_get_access_token(data=data)
@@ -38,13 +46,20 @@ async def login_user(data: UserLogin, response: Response, db: DBDep):
     return {"access_token": access_token}
 
 
-@router.get("/me")
+@router.get(
+    "/me",
+    summary='Профиль',
+    description='Получить мой профиль',
+)
 async def get_me(user_id: UserIdDep, db: DBDep):
     user = await AuthService(db).get_one_or_none_user(user_id)
     return user
 
 
-@router.post("/logout")
+@router.post(
+    "/logout",
+    summary='Выйти из системы',
+)
 async def logout(response: Response):
     response.delete_cookie("access_token")
     return {"status": "Вы вышли из системы"}

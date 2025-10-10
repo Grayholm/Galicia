@@ -10,10 +10,13 @@ from src.schemas.bookings import BookingAddRequest
 from src.services.bookings import BookingService
 from src.utils.auth_utils import UserIdDep
 
-router = APIRouter(prefix="/bookings", tags=["Бронирования"])
+router = APIRouter(prefix="/bookings", tags=["Панель бронирования"])
 
 
-@router.get("/me")
+@router.get(
+    "/me",
+    summary='Получить свои бронирования',
+)
 async def get_my_bookings(
     user_id: UserIdDep,
     db: DBDep,
@@ -26,7 +29,10 @@ async def get_my_bookings(
     return bookings_data
 
 
-@router.get("")
+@router.get(
+    "",
+    summary='Получить бронирования',
+)
 async def get_all_bookings(
     db: DBDep,
 ):
@@ -35,7 +41,11 @@ async def get_all_bookings(
     return bookings_data
 
 
-@router.post("")
+@router.post(
+    "",
+    summary='Забронировать',
+    description='Забронировать номер',
+)
 async def add_booking(user_id: UserIdDep, db: DBDep, data: BookingAddRequest):
     try:
         result = await BookingService(db).add_booking(data, user_id, db)
@@ -47,7 +57,11 @@ async def add_booking(user_id: UserIdDep, db: DBDep, data: BookingAddRequest):
     return {"status": "OK", "data": result}
 
 
-@router.delete("{booking_id}")
+@router.delete(
+    "{booking_id}",
+    summary='Удалить бронь',
+    description='Удалить свою бронь',
+)
 async def delete_booking(user_id: UserIdDep, db: DBDep, booking_id: int):
     deleted_booking = await BookingService(db).delete_booking(user_id, booking_id)
 
