@@ -25,7 +25,7 @@ async def upload_hotel_image(
     except ServiceUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except ImageServiceException as e:
-        raise HTTPException(status_code=404, detail=f"Недопустимый тип файла. Допустимы изображения формата: jpeg, png, webp")
+        raise HTTPException(status_code=415, detail=f"Недопустимый тип файла. Допустимы изображения формата: jpeg, png, webp")
 
 
 @router.delete(
