@@ -1,8 +1,6 @@
 import re
 from datetime import date
 
-from sqlalchemy import select
-from unicodedata import normalize
 
 from src.api.dependencies import PaginationDep
 from src.exceptions import (
@@ -11,7 +9,6 @@ from src.exceptions import (
     HotelNotFoundException,
     ValidationServiceError, HotelIsAlreadyRegisteredHTTPException,
 )
-from src.models import HotelsImagesModel
 from src.schemas.hotels import HotelAdd, UpdateHotel
 from src.services.base import BaseService
 from src.services.images import ImageService

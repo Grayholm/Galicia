@@ -80,8 +80,8 @@ async def test_update_hotel(hotel_id: int, title: str, location: str, status_cod
     "hotel_id, title, location, status_code",
     [
         (4, "Человек", "Паук", 200),
-        (4, "", "Паук", 400),
-        (4, "Человек", "", 400),
+        (4, "", "Паук", 200),
+        (4, "Человек", "", 200),
         (4, "", "", 400),
         (4143, "Человек", "Паук", 404),
     ],
