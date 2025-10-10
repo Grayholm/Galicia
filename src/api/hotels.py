@@ -80,12 +80,13 @@ async def create_hotel(
     description='Удаление отеля по ID',
 )
 async def delete_hotel(hotel_id: int, db: DBDep):
-    deleted_hotel = await HotelService(db).delete_hotel(hotel_id)
+    try:
+        deleted_hotel = await HotelService(db).delete_hotel(hotel_id)
+    except ObjectNotFoundException:
+        raise HotelNotFoundHTTPException
 
-    if deleted_hotel is None:
-        return {"status": f"Hotel {hotel_id} is deleted"}
-
-    return {"message": "Hotel with that ID is not found"}
+    if deleted_hotel is True:
+        return {"message": f"Hotel with ID {hotel_id} is deleted"}
 
 
 @router.put(

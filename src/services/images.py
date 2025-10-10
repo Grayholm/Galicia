@@ -1,10 +1,9 @@
 import logging
 import shutil
-from pathlib import Path
 from fastapi import UploadFile
 import uuid
 
-from src.exceptions import ObjectNotFoundException, ServiceUnavailableError
+from src.exceptions import ObjectNotFoundException, ServiceUnavailableError, ImageServiceException
 from src.schemas.images import ImageAdd
 from src.services.base import BaseService
 from src.tasks.tasks import resize_image
@@ -16,6 +15,8 @@ BASE_UPLOAD_DIR = BASE_DIR / "images"
 
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"]
+
 
 class ImageService(BaseService):
     def __init__(self, db, base_upload_dir: Path = BASE_UPLOAD_DIR):
@@ -26,6 +27,10 @@ class ImageService(BaseService):
         self.hotels_dir.mkdir(exist_ok=True)
 
         logging.info(f"ImageService initialized with base directory: {base_upload_dir}")
+
+    def _validate_file_type(self, file: UploadFile):
+        if file.content_type not in ALLOWED_IMAGE_TYPES:
+            raise ImageServiceException('Image type not allowed')
 
     def _generate_unique_filename(self, original_filename: str) -> str:
         """Генерация уникального имени файла"""
@@ -132,11 +137,9 @@ class ImageService(BaseService):
         except ObjectNotFoundException:
             raise ObjectNotFoundException(f"Hotel with id {hotel_id} not found")
 
-        # try:
-        # Сохраняем файл на диск
+        self._validate_file_type(file)
         file_info = self._save_file_to_disk(file, hotel_id)
 
-        # Создаем запись в БД
         image = ImageAdd(
             title=file.filename,
             url=file_info["file_path"],

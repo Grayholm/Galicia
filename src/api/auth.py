@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response, HTTPException
+from fastapi import APIRouter, Response, HTTPException, Depends, Request
 
 from src.api.dependencies import DBDep
 from src.exceptions import (
@@ -55,11 +55,17 @@ async def get_me(user_id: UserIdDep, db: DBDep):
     user = await AuthService(db).get_one_or_none_user(user_id)
     return user
 
+async def get_current_user(request: Request):
+    access_token = request.cookies.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Не авторизован")
+    return AuthService().decode_token(access_token)
+
 
 @router.post(
     "/logout",
     summary='Выйти из системы',
 )
-async def logout(response: Response):
+async def logout(response: Response, current_user=Depends(get_current_user)):
     response.delete_cookie("access_token")
     return {"status": "Вы вышли из системы"}

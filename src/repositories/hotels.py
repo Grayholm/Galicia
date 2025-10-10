@@ -4,7 +4,8 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 
-from src.exceptions import InvalidDateRangeError, ObjectNotFoundException
+from src.exceptions import InvalidDateRangeError, ObjectNotFoundException, HotelNotFoundHTTPException, \
+    HotelNotFoundForDateHTTPException
 from src.repositories.mappers.mappers import HotelDataMapper, ImageDataMapper
 from src.models.rooms import RoomsModel
 from src.repositories.utils import get_rooms_ids_for_booking

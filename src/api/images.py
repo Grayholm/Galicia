@@ -2,7 +2,7 @@ from fastapi import APIRouter, File, UploadFile, HTTPException
 from fastapi.staticfiles import StaticFiles
 
 from src.api.dependencies import DBDep
-from src.exceptions import ObjectNotFoundException, ServiceUnavailableError
+from src.exceptions import ObjectNotFoundException, ServiceUnavailableError, ImageServiceException
 from src.services.images import BASE_UPLOAD_DIR, ImageService
 
 router = APIRouter(prefix="/hotels", tags=["Изображения"])
@@ -24,6 +24,8 @@ async def upload_hotel_image(
         raise HTTPException(status_code=404, detail=str(e))
     except ServiceUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
+    except ImageServiceException as e:
+        raise HTTPException(status_code=404, detail=f"Недопустимый тип файла. Допустимы изображения формата: jpeg, png, webp")
 
 
 @router.delete(

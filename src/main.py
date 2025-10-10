@@ -49,7 +49,7 @@ async def validation_exception_handler(
     exc: RequestValidationError,
 ):
     return JSONResponse(
-        status_code=400, content={"detail": "Поля не должны быть пустыми и должны быть строкой"}
+        status_code=400, content={"detail": "Поля не должны быть пустыми и не должны быть пустой строкой"}
     )
 
 
