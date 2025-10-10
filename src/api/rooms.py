@@ -15,10 +15,13 @@ from src.exceptions import (
 from src.schemas.rooms import RoomAddRequest, RoomUpdateRequest
 from src.services.rooms import RoomService
 
-router = APIRouter(prefix="/hotels", tags=["Номера"])
+router = APIRouter(prefix="/hotels", tags=["Панель номеров"])
 
 
-@router.get("/{hotel_id}/rooms")
+@router.get(
+    "/{hotel_id}/rooms",
+    summary='Получить номер по фильтрам',
+)
 async def get_rooms_by_filter(
     hotel_id: int,
     db: DBDep,
@@ -36,7 +39,10 @@ async def get_rooms_by_filter(
     return {"Комнаты": result}
 
 
-@router.get("/{hotel_id}/rooms/{room_id}")
+@router.get("/{hotel_id}/rooms/{room_id}",
+    summary='Получить данные номера',
+    description='Получить данные одного номера по ID',
+)
 async def get_one_room_by_id(hotel_id: int, room_id: int, db: DBDep):
     try:
         result = await RoomService(db).get_one_room_by_id(room_id=room_id, hotel_id=hotel_id)
@@ -46,7 +52,10 @@ async def get_one_room_by_id(hotel_id: int, room_id: int, db: DBDep):
     return result
 
 
-@router.post("/{hotel_id}/rooms")
+@router.post("/{hotel_id}/rooms",
+    summary='Добавить номер',
+    description='Добавление номера к отелю',
+)
 async def create_room(
     hotel_id: int,
     db: DBDep,
@@ -127,7 +136,9 @@ async def partially_update_hotel(
     return {"message": f"Информация обновлена = {partially_updated_room}"}
 
 
-@router.delete("/{hotel_id}/rooms/{room_id}")
+@router.delete("/{hotel_id}/rooms/{room_id}",
+    summary='Удалить номер',
+)
 async def delete_room(hotel_id: int, room_id: int, db: DBDep):
     try:
         await RoomService(db).delete_room(hotel_id, room_id)
@@ -135,7 +146,5 @@ async def delete_room(hotel_id: int, room_id: int, db: DBDep):
         raise HotelNotFoundHTTPException
     except RoomNotFoundException:
         raise RoomNotFoundHTTPException
-    # except IntegrityError:
-    #     raise HTTPException()
 
     return {"status": f"Комната {room_id} успешно удалена"}
