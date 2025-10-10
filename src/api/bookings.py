@@ -4,7 +4,7 @@ from src.api.dependencies import DBDep
 from src.exceptions import (
     AvailableRoomNotFoundException,
     ObjectNotFoundException,
-    RoomNotFoundHTTPException,
+    RoomNotFoundHTTPException, InvalidDateRangeError,
 )
 from src.schemas.bookings import BookingAddRequest
 from src.services.bookings import BookingService
@@ -53,6 +53,8 @@ async def add_booking(user_id: UserIdDep, db: DBDep, data: BookingAddRequest):
         raise RoomNotFoundHTTPException
     except AvailableRoomNotFoundException:
         raise HTTPException(status_code=409, detail="На выбранные даты нет свободных номеров")
+    except InvalidDateRangeError:
+        raise HTTPException(status_code=400, detail="Дата заезда позже дата выезда")
 
     return {"status": "OK", "data": result}
 
@@ -63,9 +65,9 @@ async def add_booking(user_id: UserIdDep, db: DBDep, data: BookingAddRequest):
     description='Удалить свою бронь',
 )
 async def delete_booking(user_id: UserIdDep, db: DBDep, booking_id: int):
-    deleted_booking = await BookingService(db).delete_booking(user_id, booking_id)
-
-    if deleted_booking is None:
+    try:
+        await BookingService(db).delete_booking(user_id, booking_id)
+    except ObjectNotFoundException:
         raise HTTPException(
             status_code=404, detail=f"Бронирование с таким ID {booking_id} не найден"
         )
