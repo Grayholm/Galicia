@@ -12,7 +12,7 @@ class DataIntegrityError(BaseException):
     detail = "Data Integrity Error"
 
 
-class BaseServiceError(Exception):
+class BaseServiceError(ValueError):
     detail = "Base Service Error"
 
 
@@ -101,3 +101,8 @@ class FacilityAlreadyExists(BaseHTTPException):
 class FacilityNameTooLong(BaseHTTPException):
     status_code = 400
     detail = "Название удобства должно быть не длиннее 20 символов"
+
+class FacilityNotFoundError(BaseException):
+    def __init__(self, facility_id: int):
+        self.facility_id = facility_id
+        super().__init__(f"Facility with id {facility_id} not found")

@@ -8,10 +8,10 @@ from src.exceptions import (
     RoomNotFoundException,
     DataIsEmptyException,
     DataIntegrityError,
-    HotelNotFoundException,
+    HotelNotFoundException, BaseServiceError, FacilityNotFoundError,
 )
 from src.schemas.facilities import RoomFacilityAdd
-from src.schemas.rooms import RoomAddRequest, RoomAdd, RoomUpdateRequest, RoomUpdate
+from src.schemas.rooms import RoomAddRequest, RoomAdd, RoomUpdate, RoomBase
 from src.services.base import BaseService
 from src.services.hotels import HotelService
 
@@ -24,6 +24,8 @@ class RoomService(BaseService):
         date_from: date,
         date_to: date,
     ):
+
+
         return await self.db.rooms.get_rooms(hotel_id, filters, date_from, date_to)
 
     async def get_one_room_by_id(self, room_id: int, hotel_id: int):
@@ -32,10 +34,18 @@ class RoomService(BaseService):
     async def create_room(self, hotel_id: int, data: RoomAddRequest):
         await HotelService(self.db).get_hotel_with_check(hotel_id)
 
+        if data.price <= 0 or data.quantity <= 0:
+            raise BaseServiceError
+
         room_data = RoomAdd(hotel_id=hotel_id, **data.model_dump(exclude_unset=True))
         room = await self.db.rooms.add(room_data)
 
         if data.facilities_ids:
+            for f_id in data.facilities_ids:
+                try:
+                    await self.db.facilities.get_one(id=f_id)
+                except ObjectNotFoundException:
+                    raise FacilityNotFoundError(facility_id=f_id)
             rooms_facilities_data = [
                 RoomFacilityAdd(room_id=room.id, facility_id=f_id) for f_id in data.facilities_ids
             ]
@@ -60,12 +70,12 @@ class RoomService(BaseService):
         await self.db.commit()
 
     async def update_room(
-        self,
-        hotel_id: int,
-        room_id: int,
-        f_ids_to_add: list[int],
-        f_ids_to_dlt: list[int],
-        data: RoomUpdateRequest,
+            self,
+            hotel_id: int,
+            room_id: int,
+            f_ids_to_add: list[int],
+            f_ids_to_dlt: list[int],
+            data: RoomBase,  # Базовый тип, подходит и для PUT, и для PATCH
     ):
         data_dict = data.model_dump(exclude_unset=True) if data else {}
 
@@ -77,6 +87,14 @@ class RoomService(BaseService):
 
         room_data = RoomUpdate(hotel_id=hotel_id, **data_dict)
 
+        # Проверяем существование всех указанных facility
+        all_facility_ids = set(f_ids_to_add + f_ids_to_dlt)
+        for f_id in all_facility_ids:
+            try:
+                await self.db.facilities.get_one(id=f_id)
+            except ObjectNotFoundException:
+                raise FacilityNotFoundError(facility_id=f_id)
+
         updated_room = await self.db.rooms.update(
             data=room_data,
             f_ids_add=f_ids_to_add,
@@ -85,42 +103,40 @@ class RoomService(BaseService):
             hotel_id=hotel_id,
         )
         await self.db.commit()
-
         return updated_room
+
 
     async def partially_update_room(
         self,
         hotel_id: int,
         room_id: int,
-        f_ids_to_add: list[int],
-        f_ids_to_dlt: list[int],
-        data: RoomUpdateRequest | None,  # добавил | None
+        f_ids_to_add: list[int] | None,
+        f_ids_to_dlt: list[int] | None,
+        data: RoomBase | None,
     ):
         update_dict = data.model_dump(exclude_unset=True) if data else {}
 
+        # Проверяем, есть ли вообще что обновлять
         if not update_dict and not f_ids_to_add and not f_ids_to_dlt:
             raise DataIsEmptyException
 
         await HotelService(self.db).get_hotel_with_check(hotel_id)
         await self.get_room_with_check(room_id)
 
-        room_data = RoomUpdate(hotel_id=hotel_id, **update_dict) if update_dict else {}
-
-        # if room_data is None:
-        #     raise DataIsEmptyException
+        room_data = RoomUpdate(hotel_id=hotel_id, **update_dict) if update_dict else None
 
         try:
             edited_room = await self.db.rooms.update(
                 data=room_data,
-                f_ids_add=f_ids_to_add,
-                f_ids_dlt=f_ids_to_dlt,
+                f_ids_add=f_ids_to_add or [],
+                f_ids_dlt=f_ids_to_dlt or [],
                 id=room_id,
                 hotel_id=hotel_id,
             )
         except IntegrityError:
             raise DataIntegrityError
-        await self.db.commit()
 
+        await self.db.commit()
         return edited_room
 
     async def get_room_with_check(self, room_id: int):

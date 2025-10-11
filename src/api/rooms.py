@@ -10,9 +10,9 @@ from src.exceptions import (
     HotelNotFoundException,
     RoomNotFoundException,
     DataIsEmptyException,
-    DataIntegrityError,
+    DataIntegrityError, BaseServiceError, FacilityNotFoundError,
 )
-from src.schemas.rooms import RoomAddRequest, RoomUpdateRequest
+from src.schemas.rooms import RoomAddRequest, RoomUpdateRequestPut, RoomUpdateRequestPatch
 from src.services.rooms import RoomService
 
 router = APIRouter(prefix="/hotels", tags=["Панель номеров"])
@@ -32,7 +32,7 @@ async def get_rooms_by_filter(
     try:
         result = await RoomService(db).get_rooms_by_filter(hotel_id, filters, date_from, date_to)
     except InvalidDateRangeError:
-        raise HTTPException(status_code=400, detail="Дата заезда позже дата выезда")
+        raise HTTPException(status_code=400, detail="Пожалуйста, проверьте даты. Дата выезда должна быть позже даты заезда и не раньше сегодняшнего дня.")
     except ObjectNotFoundException:
         raise RoomNotFoundHTTPException
 
@@ -78,6 +78,18 @@ async def create_room(
         room = await RoomService(db).create_room(hotel_id, data)
     except HotelNotFoundException:
         raise HotelNotFoundHTTPException
+    except ObjectNotFoundException:
+        raise HTTPException(status_code=404, detail='Несуществующие')
+    except BaseServiceError:
+        raise HTTPException(
+        status_code=400,
+        detail="Цена и количество должны быть положительными числами"
+    )
+    except FacilityNotFoundError as e:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Удобство с ID {e.facility_id} не найдено"
+        )
     except ValueError:
         raise HTTPException(status_code=400, detail="Название не может быть пустым")
 
@@ -95,7 +107,7 @@ async def update_room(
     room_id: int,
     f_ids_to_add: list[int] = Body([]),
     f_ids_to_dlt: list[int] = Body([]),
-    data: RoomUpdateRequest = Body(),
+    data: RoomUpdateRequestPut = Body(),
 ):
     try:
         updated_room = await RoomService(db).update_room(
@@ -103,6 +115,11 @@ async def update_room(
         )
     except DataIsEmptyException:
         raise HTTPException(status_code=400, detail="Отсутствуют данные для обновления")
+    except FacilityNotFoundError as e:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Удобство с ID {e.facility_id} не найдено"
+        )
     except RoomNotFoundException:
         raise RoomNotFoundHTTPException
     except HotelNotFoundException:
@@ -113,27 +130,36 @@ async def update_room(
 
 @router.patch(
     "/{hotel_id}/rooms/{room_id}",
-    summary="Частичное обновление данных об отеле",
-    description="Тут мы частично обновляем данные",
+    summary="Частичное обновление данных о номере",
+    description="Частично обновляет данные о номере в отеле и его удобствах",
 )
-async def partially_update_hotel(
+async def partially_update_room(
     hotel_id: int,
-    db: DBDep,
     room_id: int,
-    f_ids_to_add: list[int] | None = Body([]),
-    f_ids_to_dlt: list[int] | None = Body([]),
-    data: RoomUpdateRequest | None = Body(),
+    db: DBDep,
+    f_ids_to_add: list[int] = Body(default=[]),
+    f_ids_to_dlt: list[int] = Body(default=[]),
+    data: RoomUpdateRequestPatch | None = Body(default=None),
 ):
     try:
-        partially_updated_room = await RoomService(db).partially_update_room(
-            hotel_id, room_id, f_ids_to_add, f_ids_to_dlt, data
+        updated_room = await RoomService(db).partially_update_room(
+            hotel_id=hotel_id,
+            room_id=room_id,
+            f_ids_to_add=f_ids_to_add,
+            f_ids_to_dlt=f_ids_to_dlt,
+            data=data,
         )
+
     except DataIsEmptyException:
         raise HTTPException(status_code=400, detail="Отсутствуют данные для обновления")
     except DataIntegrityError:
-        raise HTTPException(status_code=400, detail="Данные значения facilities не найдены в БД")
+        raise HTTPException(status_code=400, detail="Указанные facilities не найдены в базе данных")
+    except RoomNotFoundException:
+        raise RoomNotFoundHTTPException
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
 
-    return {"message": f"Информация обновлена = {partially_updated_room}"}
+    return {"message": "Информация о номере успешно обновлена", "data": updated_room}
 
 
 @router.delete("/{hotel_id}/rooms/{room_id}",

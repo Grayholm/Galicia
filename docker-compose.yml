@@ -31,8 +31,8 @@ services:
     image: bookings_app
     build:
       context: .
-#    ports:
-#      - "7777:8000"
+    ports:
+      - "7777:8000"
     volumes:
       - ./src/images:/app/src/images
     networks:
