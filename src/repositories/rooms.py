@@ -1,3 +1,4 @@
+from datetime import date
 import logging
 
 from sqlalchemy import delete, insert, select, update
@@ -23,9 +24,11 @@ class RoomsRepository(BaseRepository):
         )
 
         try:
-            if date_from >= date_to:
+            today = date.today()
+            if date_from <= today or date_from >= date_to:
                 logging.warning(f"Invalid date range: {date_from} to {date_to}")
                 raise InvalidDateRangeError
+
 
             rooms_ids_to_get = get_rooms_ids_for_booking(date_from, date_to, hotel_id)
             logging.debug(f"Found {rooms_ids_to_get} available room IDs")
@@ -84,36 +87,33 @@ class RoomsRepository(BaseRepository):
         )
 
         try:
-            if data and (hasattr(data, "model_dump") or data):
+            update_data = {}
+            if data:
                 if hasattr(data, "model_dump"):
                     update_data = data.model_dump(exclude_unset=True)
-                else:
+                elif isinstance(data, dict):
                     update_data = data
 
-                if update_data:
-                    update_stmt = (
-                        update(self.model)
-                        .filter_by(**filters)
-                        .values(**update_data)
-                        .returning(self.model)
-                    )
-                    result = await self.session.execute(update_stmt)
-                    edited_room = result.scalar_one()
-                else:
-                    query = select(self.model).filter_by(**filters)
-                    result = await self.session.execute(query)
-                    edited_room = result.scalar_one()
+            if update_data:
+                update_stmt = (
+                    update(self.model)
+                    .filter_by(**filters)
+                    .values(**update_data)
+                    .returning(self.model)
+                )
+                result = await self.session.execute(update_stmt)
+                edited_room = result.scalar_one_or_none()
             else:
                 query = select(self.model).filter_by(**filters)
                 result = await self.session.execute(query)
-                edited_room = result.scalar_one()
+                edited_room = result.scalar_one_or_none()
 
             if not edited_room:
                 logging.warning(f"Room not found for update: {filters}")
                 raise ObjectNotFoundException
 
             edited = self.mapper.map_to_domain_entity(edited_room)
-            logging.debug(f"Room {room_id} basic info updated")
+            logging.debug(f"Room {room_id} base info updated")
 
             if f_ids_dlt:
                 delete_query = delete(RoomsFacilitiesModel).where(
@@ -124,28 +124,22 @@ class RoomsRepository(BaseRepository):
                 logging.debug(f"Deleted {len(f_ids_dlt)} facilities from room {room_id}")
 
             if f_ids_add:
-                valid_ids = [f_id for f_id in f_ids_add if f_id > 0]
-                logging.debug(f"Valid facility IDs to add: {valid_ids}")
-
-                # Проверка существующих связей
                 existing_query = select(RoomsFacilitiesModel.facility_id).where(
                     RoomsFacilitiesModel.room_id == room_id,
-                    RoomsFacilitiesModel.facility_id.in_(valid_ids),
+                    RoomsFacilitiesModel.facility_id.in_(f_ids_add),
                 )
                 existing_result = await self.session.execute(existing_query)
                 existing_ids = {row[0] for row in existing_result.all()}
 
-                new_ids = [f_id for f_id in valid_ids if f_id not in existing_ids]
-
+                new_ids = [f_id for f_id in f_ids_add if f_id not in existing_ids]
                 if new_ids:
-                    values_to_insert = [
-                        {"room_id": room_id, "facility_id": facility_id} for facility_id in new_ids
-                    ]
-                    insert_query = insert(RoomsFacilitiesModel).values(values_to_insert)
+                    insert_query = insert(RoomsFacilitiesModel).values(
+                        [{"room_id": room_id, "facility_id": f_id} for f_id in new_ids]
+                    )
                     await self.session.execute(insert_query)
-                    logging.debug(f"Added {len(new_ids)} new facilities to room {room_id}")
+                    logging.debug(f"Added {len(new_ids)} facilities to room {room_id}")
                 else:
-                    logging.debug("No new facilities to add - all already exist")
+                    logging.debug("No new facilities to add")
 
             logging.info(f"Room {room_id} updated successfully")
             return edited

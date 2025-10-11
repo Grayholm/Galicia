@@ -48,8 +48,18 @@ async def validation_exception_handler(
     request,
     exc: RequestValidationError,
 ):
+    errors = []
+    for err in exc.errors():
+        loc = " -> ".join(map(str, err["loc"]))
+        msg = err["msg"]
+        errors.append(f"{loc}: {msg}")
+
     return JSONResponse(
-        status_code=400, content={"detail": "Поля не должны быть пустыми и не должны быть пустой строкой"}
+        status_code=400,
+        content={
+            "detail": "Поля не должны быть пустыми и не должны быть пустой строкой",
+            "errors": errors,
+        },
     )
 
 

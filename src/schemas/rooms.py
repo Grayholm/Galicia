@@ -45,11 +45,42 @@ class RoomsWithRels(Room):
     facilities: list[Facility]
 
 
-class RoomUpdateRequest(BaseModel):
+class RoomBase(BaseModel):
     title: str | None = None
     description: str | None = None
     price: int | None = None
     quantity: int | None = None
+
+    @field_validator("title", "description")
+    @classmethod
+    def not_empty(cls, v: str | None):
+        if v is None:
+            return v
+        if not v.strip():
+            raise ValueError("Поле не может быть пустым или содержать только пробелы")
+        return v
+
+    @field_validator("price", "quantity")
+    @classmethod
+    def positive(cls, v: int | None):
+        if v is None:
+            return v
+        if v <= 0:
+            raise ValueError("Значение должно быть больше нуля")
+        return v
+
+
+class RoomUpdateRequestPatch(RoomBase):
+    """Для PATCH — поля опциональны"""
+    pass
+
+
+class RoomUpdateRequestPut(RoomBase):
+    """Для PUT — поля обязательны"""
+    title: str
+    description: str
+    price: int
+    quantity: int
 
 
 class RoomUpdate(BaseModel):
