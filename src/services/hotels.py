@@ -77,11 +77,11 @@ class HotelService(BaseService):
         if hotel.title is None or hotel.location is None:
             return DataIsEmptyException("Отсутствуют данные для обновления")
         try:
-            existed_hotel = await self.db.hotels.get_one_hotel_by_id(hotel_id)
+            await self.db.hotels.get_one_hotel_by_id(hotel_id)
         except ObjectNotFoundException:
             raise
         try:
-            updated_hotel = await self.db.hotels.update(existed_hotel, id=hotel_id)
+            updated_hotel = await self.db.hotels.update(hotel, id=hotel_id)
         except (ValidationServiceError, ObjectNotFoundException):
             raise
 

@@ -105,8 +105,8 @@ async def update_hotel(hotel_id: int, hotel: HotelAdd, db: DBDep):
         )
     except ObjectNotFoundException:
         raise HotelNotFoundHTTPException
-    if updated_hotel is not None:
-        return {"message": f"Информация обновлена = {updated_hotel}"}
+
+    return {"message": f"Информация обновлена = {updated_hotel}"}
 
 
 @router.patch(

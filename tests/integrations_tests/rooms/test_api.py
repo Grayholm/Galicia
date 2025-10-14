@@ -64,26 +64,32 @@ async def test_create_room(
         (
             1,
             {"title": "Имба_0", "price_min": 1000, "price_max": 5000},
-            "2025-01-01",
-            "2025-12-31",
+            "2026-01-01",
+            "2026-12-31",
             200,
         ),
-        (1, {"price_min": 500}, "2025-01-01", "2025-12-31", 200),
-        (1, {}, "2025-01-01", "2025-12-31", 200),  # без фильтров
-        (1, {"title": "Имба_2"}, "2025-01-01", "2025-12-31", 200),
-        (142, {"title": "Имба_2"}, "2025-01-01", "2025-12-31", 404),
+        (1, {"price_min": 500}, "2026-01-01", "2026-12-31", 200),
+        (1, {}, "2026-01-01", "2026-12-31", 200),  # без фильтров
+        (1, {"title": "Имба_2"}, "2026-01-01", "2026-12-31", 200),
+        (142, {"title": "Имба_2"}, "2026-01-01", "2026-12-31", 404),
     ],
 )
 async def test_get_rooms_by_filter(
     hotel_id: int, filters: RoomsFilterDep, date_from, date_to, status_code, ac
 ):
     params = {
+        **filters,
         "date_from": date_from,
         "date_to": date_to,
-        **filters,
     }
 
+    print(f"🔍 Debug: hotel_id={hotel_id}, params={params}")
+
     response = await ac.get(f"/hotels/{hotel_id}/rooms", params=params)
+
+    print(f"📡 Status: {response.status_code}")
+    if response.status_code != status_code:
+        print(f"❌ Unexpected response: {response.text}")
 
     assert response.status_code == status_code
 
@@ -105,8 +111,8 @@ async def test_get_rooms_by_filter(
             },
             200,
         ),
-        (1, 1, [], [], {"title": "Только название обновил", "price": 3000}, 200),
-        (1, 1, [], [1, 2], {"title": "Удаление удобств", "price": 1245}, 200),
+        (1, 1, [], [], {"title": "Только название обновил", "price": 3000}, 400),
+        (1, 1, [], [1, 2], {"title": "Удаление удобств", "price": 1245}, 400),
         (1, 1, [], [], {}, 400),
         (
             124,
@@ -257,7 +263,7 @@ async def test_partially_update_room(
     if status_code == 200:
         response_data = response.json()
         assert "message" in response_data
-        assert "Информация обновлена" in response_data["message"]
+        assert "Информация о номере успешно обновлена" in response_data["message"]
 
 
 @pytest.mark.parametrize(

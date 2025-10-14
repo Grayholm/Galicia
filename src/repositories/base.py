@@ -76,8 +76,8 @@ class BaseRepository:
         result = await self.session.execute(update_stmt)
 
         try:
-            object = result.scalar_one()
-            edited = self.mapper.map_to_domain_entity(object)
+            obj = result.scalar_one()
+            edited = self.mapper.map_to_domain_entity(obj)
         except NoResultFound:
             raise ObjectNotFoundException
         except ValidationError:
@@ -86,10 +86,13 @@ class BaseRepository:
         return edited
 
     async def delete(self, **filter):
-        delete_stmt = delete(self.model).filter_by(**filter)
+        delete_stmt = delete(self.model)
+        if filter:
+            delete_stmt = delete_stmt.filter_by(**filter)
+
         result = await self.session.execute(delete_stmt)
 
-        if result.rowcount == 0:
+        if filter and result.rowcount == 0:
             raise ObjectNotFoundException
 
         return True
