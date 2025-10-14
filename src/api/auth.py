@@ -48,7 +48,7 @@ async def login_user(data: UserLogin, response: Response, db: DBDep):
 
 @router.get(
     "/me",
-    summary='Профиль',
+    summary='👨‍💻 Мой профиль',
     description='Получить мой профиль',
 )
 async def get_me(user_id: UserIdDep, db: DBDep):
